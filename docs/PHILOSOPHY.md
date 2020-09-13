@@ -1,3 +1,7 @@
+---
+currentMenu: philosophy
+---
+
 # Philosophy
 
 ## Why ?
