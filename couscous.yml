@@ -4,7 +4,7 @@ template:
 include:
     - docs
 
-baseUrl: http://innmind.github.io/witness
+baseUrl: https://innmind.github.io/witness
 
 github:
     user: innmind
