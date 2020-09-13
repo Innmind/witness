@@ -17,4 +17,4 @@ menu:
     items:
         home:
             text: Getting Started
-            relativeUrl: docs/index.html
+            relativeUrl: index.html
