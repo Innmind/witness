@@ -1,0 +1,20 @@
+template:
+    url: https://github.com/CouscousPHP/Template-ReadTheDocs
+
+include:
+    - docs
+
+baseUrl: http://innmind.github.io/witness
+
+github:
+    user: innmind
+    repo: witness
+
+title: Witness
+subTitle: Actor Model meets PHP.
+
+menu:
+    items:
+        home:
+            text: Getting Started
+            relativeUrl: docs/index.html
