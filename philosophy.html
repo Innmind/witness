@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Witness</title>
+
+    <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic'
+          rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" href="https://innmind.github.io/witness/css/theme.css" type="text/css"/>
+    <link rel="stylesheet" href="https://innmind.github.io/witness/css/theme-fixes.css" type="text/css"/>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
+</head>
+<body class="wy-body-for-nav">
+
+    <div class="wy-grid-for-nav">
+
+        <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+            <div class="wy-side-nav-search">
+                <a href="https://innmind.github.io/witness/" class="fa fa-home"> Witness</a>
+            </div>
+
+            <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                                            <li class="toctree-l1 ">
+                            <a class="reference internal "
+                               href="https://innmind.github.io/witness/index.html">
+                                Getting Started
+                            </a>
+                        </li>
+                                            <li class="toctree-l1 ">
+                            <a class="reference internal "
+                               href="https://innmind.github.io/witness/philosophy.html">
+                                Philosophy
+                            </a>
+                        </li>
+                                    </ul>
+            </div>
+            &nbsp;
+        </nav>
+
+        <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+                        <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+                <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+                <a href="https://innmind.github.io/witness/">Witness</a>
+            </nav>
+
+
+                        <div class="wy-nav-content">
+                <div class="rst-content">
+                    <div role="main" class="document">
+                        <h1 id="philosophy">Philosophy</h1>
+<h2 id="why-">Why ?</h2>
+<p>The <a href="https://en.wikipedia.org/wiki/Actor_model">Actor Model</a> is intended for highly concurrent applications handling a large volume of data. This model allows for highly available and resilient systems (with self healing mechanisms). A popular number for this model is Ericsson reaching an availability of <a href="https://en.wikipedia.org/wiki/Erlang_(programming_language)#History"><code>99.999999999</code>%</a> in one of its products in 1998, that's nine nines meaning a downtime of about <em>31 milliseconds</em> per year. This level of availability was supposed to be unreachable.</p>
+<p>Famous examples of products built on top of this model are WhatsApp (via <a href="https://www.erlang.org">Erlang</a>) and Halo 4 Multiplayer backend (via <a href="https://dotnet.github.io/orleans/">Orleans</a>).</p>
+<p>To be able to provide a high concurrency the language/framework must allow a high number of actors, the goal is to divide the work as mush as the user needs to. All tools (<a href="https://www.erlang.org">Erlang</a>, <a href="https://www.ponylang.io">Ponylang</a>, <a href="https://akka.io">Akka</a>) leverage threading under the hood to lower the cost of creating an actor.</p>
+<p>All that being said, PHP seems to be an ill fitted language to use such programming model as it doesn't provide some advanced mechanism such as threading. Indeed PHP is not the perfect for this task since it was not built for this king of things (unlike Erlang). But it has advantages compared to other tools like Akka.</p>
+<p>PHP is a share nothing language, each process is independent which is a core principle of the Actor Model to allow concurrency. This ability combined with the fact that the language is interpreted means that you can deploy your code, start a new process and you can have 2 processes of an application running 2 differents versions of the code; you don't have to shutdown all your application to release a new version. Another good point for availability.</p>
+<p>PHP 8 introduces a JIT compiler, opening the door for new possibilities for PHP applications including long lived processes. Actors being long lived processes could benefit from this new feature.</p>
+<p>The last advantage is a strategic one for companies already using PHP. Applications requirements evolve over time and current programming model may reach their limits pushing teams to search for new ways to solve their problems. Allowing PHP developers to experiment with the Actor Model allows companies to evolve at a lower cost and lower risk. Companies wouldn't have to either train their teams to a new language or hire new developers. In the case the Actor Model would reach its limit with PHP, the team would have gained enough experience to move the application to a more fitted language.</p>
+<p>PHP applications realm as greatly increased over the years, it could evolve once more.</p>
+<h2 id="development-process">Development process</h2>
+<p>Building such a tool will take quite some time before reaching a stable release, but in order to provide enough value along the way the development will follow these steps:</p>
+<ul>
+<li>make it work</li>
+<li>make it simple</li>
+<li>make it fast</li>
+</ul>
+                    </div>
+
+                    <footer>
+                        <hr/>
+                                                    <div role="contentinfo">
+                                <p>
+                                    Find Witness on <a href="https://github.com/innmind/witness">GitHub</a>.
+                                </p>
+                            </div>
+                                                Built with <a href="http://couscous.io/">Couscous</a> using a <a href="https://github.com/CouscousPHP/Template-ReadTheDocs">theme</a> based on <a href="https://readthedocs.org/">Read the Docs</a>.
+                    </footer>
+
+                </div>
+            </div>
+
+        </section>
+
+    </div>
+
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
+    <script src="https://innmind.github.io/witness/js/theme.js"></script>
+
+    <script>
+        $(function() {
+            // Syntax highlighting
+            hljs.initHighlightingOnLoad();
+        });
+    </script>
+
+</body>
+</html>
