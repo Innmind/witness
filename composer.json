@@ -1,0 +1,35 @@
+{
+    "name": "innmind/witness",
+    "type": "library",
+    "description": "",
+    "keywords": [],
+    "homepage": "http://github.com/innmind/witness",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Baptiste Langlade",
+            "email": "langlade.baptiste@gmail.com"
+        }
+    ],
+    "support": {
+        "issues": "http://github.com/innmind/witness/issues"
+    },
+    "require": {
+        "php": "~7.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "innmind\\witness\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\innmind\\witness\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~9.0",
+        "vimeo/psalm": "^3.7",
+        "innmind/black-box": "~4.10"
+    }
+}
