@@ -12,7 +12,7 @@ sig Actor {
 	mailbox: disj one Mailbox,
 	produce: disj set Message,
 	children: disj set Actor,
-	parent: lone Actor,
+	parent: one Actor,
 } {
 	parent not in children
 }
