@@ -1,8 +1,6 @@
 sig Machine {
 	actors: disj set Actor,
 	supervisor: disj one Supervisor,
-} {
-	supervisor.machine = this
 }
 sig Address {
 }
@@ -12,12 +10,10 @@ sig Mailbox {
 }
 sig Actor {
 	mailbox: disj one Mailbox,
-	machine: disj one Machine,
 	produce: disj set Message,
 	children: disj set Actor,
 	parent: lone Actor,
 } {
-	this not in children
 	parent not in children
 }
 one sig RootActor extends Actor {} { no parent }
@@ -27,7 +23,6 @@ sig Signal {
 }
 sig Supervisor {
 	actors: disj set Actor,
-	machine: disj one Machine,
 }
 
 fact { all a: Actor | a.children.parent = a }
