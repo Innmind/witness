@@ -1,3 +1,13 @@
+// this model is not valid because it allows a loop of actors
+// given Actor0, Actor1  and Actor2
+// Actor0.parent = Actor1
+// Actor1.parent = Actor2
+// Actor2.parent = Actor0
+// this is not allowed for an Actor model but the model below
+// allows which is wrong, but I don't know how to fix it since
+// I'm new to Alloy and specifications. Any help would be
+// greatly appreciated to help be understand what I'm doing
+// wrong
 one sig ActorTree {
     root: Actor,
     actors: some Actor,
