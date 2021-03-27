@@ -1,0 +1,25 @@
+<?php
+declare(strict_types = 1);
+
+use Halsey\Journal\{
+    Config,
+    Menu\Entry,
+};
+use Innmind\Url\Path;
+
+return static function(Config $config): Config
+{
+    return $config
+        ->package('innmind', 'witness')
+        ->locatedAt(Path::of('docs/'))
+        ->menu(
+            Entry::markdown(
+                'Getting started',
+                Path::of('README.md'),
+            ),
+            Entry::markdown(
+                'Philosophy',
+                Path::of('PHILOSOPHY.md'),
+            ),
+        );
+};
