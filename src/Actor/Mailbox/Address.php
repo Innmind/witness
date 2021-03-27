@@ -5,8 +5,14 @@ namespace Innmind\Witness\Actor\Mailbox;
 
 use Innmind\Witness\Message;
 
+/**
+ * @template H of Message
+ */
 interface Address
 {
+    /**
+     * @param H $message
+     */
     public function __invoke(Message $message): void;
 
     /**

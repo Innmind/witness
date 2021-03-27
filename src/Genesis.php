@@ -14,8 +14,13 @@ use Innmind\Witness\Actor\Mailbox\Address;
 interface Genesis
 {
     /**
-     * @param class-string<Actor> $actor
+     * @template H of Message
+     * @template A of Actor<H>
+     *
+     * @param class-string<A> $actor
      * @param T $args
+     *
+     * @return Address<H>
      */
     public function spawn(string $actor, ...$args): Address;
 }
