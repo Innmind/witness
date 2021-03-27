@@ -15,7 +15,8 @@
         "issues": "http://github.com/innmind/witness/issues"
     },
     "require": {
-        "php": "~8.0"
+        "php": "~8.0",
+        "innmind/immutable": "^3.11"
     },
     "autoload": {
         "psr-4": {
