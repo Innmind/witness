@@ -24,11 +24,12 @@ final class User implements Actor
         match(\get_class($message)) {
             Greet::class => $this->greet($message),
             default => null, // discard other messages
-        }
+        };
     }
 
     private function greet(Greet $greet): void
     {
+        // in real live don't print to the output
         $greet->get('name')->match(
             fn($name) => print("{$this->name}: Hi $name 👋\n"),
             fn() => print("{$this->name}: Hi guys 🙂\n"),

@@ -39,7 +39,7 @@ final class Group implements Actor
             ->map(function(string $name): Address {
                 $user = $this->system->spawn(User::class, $name);
 
-                $this->users->foreach(fn($other) => $other(Greet::newcomer($name)))
+                $this->users->foreach(fn($other) => $other(Greet::newcomer($name)));
 
                 return $user;
             })

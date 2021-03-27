@@ -1,0 +1,31 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types = 1);
+
+require __DIR__.'/../vendor/autoload.php';
+
+use Example\{
+    Chat,
+    Group,
+    User,
+};
+use Innmind\CLI\{
+    Main,
+    Environment,
+};
+use Innmind\OperatingSystem\OperatingSystem;
+use Innmind\Witness\Genesis;
+
+new class extends Main
+{
+    protected function main(Environment $env, OperatingSystem $os): void
+    {
+        $genesis = (new Genesis\InMemory)
+            ->actor(Chat::class, fn($genesis) => new Chat($genesis))
+            ->actor(Group::class, fn($genesis) => new Group($genesis))
+            ->actor(User::class, fn($genesis, $user) => new User($user));
+
+        $genesis->spawn(Chat::class);
+        $genesis->run();
+    }
+};

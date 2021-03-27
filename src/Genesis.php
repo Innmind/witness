@@ -7,7 +7,7 @@ use Innmind\Witness\Actor\Mailbox\Address;
 
 /**
  * @psalm-type Primitive = int|float|string|bool
- * @psalm-type Value = Primitive|Address
+ * @psalm-type Value = Primitive|Address<Message>
  * @psalm-type Collection = list<Value>|array<string, Value>
  * @psalm-type T = Collection|Value
  */
