@@ -1,13 +1,13 @@
 name: CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   roave_bc_check:
     name: Roave BC Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
       - name: fetch tags
         run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Roave BC Check
@@ -18,12 +18,13 @@ jobs:
       matrix:
         os: [ubuntu-latest, macOS-latest]
         php-version: ['8.0']
-    name: 'PHPUnit - PHP/${{ matrix.php-version }} - OS/${{ matrix.os }}'
+        dependencies: ['lowest', 'highest']
+    name: 'PHPUnit'
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Setup PHP
-        uses: shivammathur/setup-php@v1
+        uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
           extensions: mbstring, intl
@@ -32,12 +33,16 @@ jobs:
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
       - name: Cache dependencies
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
-          restore-keys: ${{ runner.os }}-composer-
+          key: ${{ runner.os }}-${{ matrix.php-version }}-${{ matrix.dependencies }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-${{ matrix.php-version }}-${{ matrix.dependencies }}-composer-
       - name: Install Dependencies
+        if: ${{ matrix.dependencies == 'lowest' }}
+        run: composer update --prefer-lowest --no-progress
+      - name: Install Dependencies
+        if: ${{ matrix.dependencies == 'highest' }}
         run: composer install --no-progress
       - name: PHPUnit
         run: vendor/bin/phpunit
@@ -49,12 +54,13 @@ jobs:
       matrix:
         os: [ubuntu-latest, macOS-latest]
         php-version: ['8.0']
-    name: 'Coverage - PHP/${{ matrix.php-version }} - OS/${{ matrix.os }}'
+        dependencies: ['lowest', 'highest']
+    name: 'Coverage'
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Setup PHP
-        uses: shivammathur/setup-php@v1
+        uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
           extensions: mbstring, intl
@@ -63,12 +69,16 @@ jobs:
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
       - name: Cache dependencies
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
-          restore-keys: ${{ runner.os }}-composer-
+          key: ${{ runner.os }}-${{ matrix.php-version }}-${{ matrix.dependencies }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-${{ matrix.php-version }}-${{ matrix.dependencies }}-composer-
       - name: Install Dependencies
+        if: ${{ matrix.dependencies == 'lowest' }}
+        run: composer update --prefer-lowest --no-progress
+      - name: Install Dependencies
+        if: ${{ matrix.dependencies == 'highest' }}
         run: composer install --no-progress
       - name: PHPUnit
         run: vendor/bin/phpunit --coverage-clover=coverage.clover
@@ -82,12 +92,13 @@ jobs:
     strategy:
       matrix:
         php-version: ['8.0']
-    name: 'Psalm - PHP/${{ matrix.php-version }}'
+        dependencies: ['lowest', 'highest']
+    name: 'Psalm'
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Setup PHP
-        uses: shivammathur/setup-php@v1
+        uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
           extensions: mbstring, intl
@@ -95,12 +106,16 @@ jobs:
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
       - name: Cache dependencies
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
-          restore-keys: ${{ runner.os }}-composer-
+          key: ${{ runner.os }}-${{ matrix.php-version }}-${{ matrix.dependencies }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-${{ matrix.php-version }}-${{ matrix.dependencies }}-composer-
       - name: Install Dependencies
+        if: ${{ matrix.dependencies == 'lowest' }}
+        run: composer update --prefer-lowest --no-progress
+      - name: Install Dependencies
+        if: ${{ matrix.dependencies == 'highest' }}
         run: composer install --no-progress
       - name: Psalm
         run: vendor/bin/psalm --shepherd
