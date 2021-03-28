@@ -30,7 +30,7 @@ final class InMemory implements Mailbox
 
     public function consume(Consume $continue): void
     {
-        while($continue()) {
+        while($continue() && !$this->messages->empty()) {
             $this
                 ->messages
                 ->take(1)

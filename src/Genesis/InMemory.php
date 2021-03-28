@@ -66,7 +66,7 @@ final class InMemory implements Genesis
 
     public function run(): void
     {
-        $continue = fn(): Consume => new Consume\Once;
+        $continue = fn(): Consume => new Consume\Always;
 
         while (true) {
             $this->mailboxes->foreach(
