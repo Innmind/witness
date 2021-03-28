@@ -7,15 +7,16 @@ use Innmind\Witness\{
     Actor\Mailbox,
     Actor\Mailbox\Address,
     Message,
+    Signal,
 };
 
 final class InMemory implements Address
 {
-    /** @var callable(Message): void */
+    /** @var callable(Message|Signal): void */
     private $publish;
 
     /**
-     * @param callable(Message): void $publish
+     * @param callable(Message|Signal): void $publish
      */
     public function __construct(callable $publish)
     {
@@ -25,6 +26,11 @@ final class InMemory implements Address
     public function __invoke(Message $message): void
     {
         ($this->publish)($message);
+    }
+
+    public function signal(Signal\ChildFailed|Signal\Terminated $signal): void
+    {
+        ($this->publish)($signal);
     }
 
     public function toString(): string

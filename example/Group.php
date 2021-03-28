@@ -28,6 +28,8 @@ final class Group implements Actor
     {
         match(\get_class($message)) {
             Add::class => $this->addUser($message),
+            Signal\ChildFailed::class => print("System: someone had a connectivity issue\n"),
+            Signal\Terminated::class => $this->remove($message->child()),
             default => null, // discard other messages
         };
     }
@@ -52,5 +54,11 @@ final class Group implements Actor
                 fn(Address $user) => ($this->users)($user),
                 fn() => $this->users,
             );
+    }
+
+    private function remove(Address $user): void
+    {
+        $this->users = $this->users->remove($user);
+        print("System: someone left the group\n");
     }
 }

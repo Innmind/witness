@@ -10,6 +10,7 @@ use Innmind\Witness\{
     Actor\Mailbox\Consume,
     Actor,
     Message,
+    Signal,
 };
 use Innmind\Immutable\{
     Map,
@@ -67,17 +68,23 @@ final class InMemory implements Genesis
      */
     public function spawn(string $actor, ...$args): Address
     {
-        $mailbox = new Mailbox\InMemory(function() use ($actor, $args): Actor {
-            /** @var A */
-            return $this->factories->get($actor)(
-                $this,
-                $this->running->match(
-                    fn($parent) => $this->children->get($parent),
-                    fn() => Set::of(Address::class),
-                ),
-                ...$args,
-            );
-        });
+        $parent = $this->running;
+        $mailbox = new Mailbox\InMemory(
+            function() use ($actor, $args): Actor {
+                /** @var A */
+                return $this->factories->get($actor)(
+                    $this,
+                    $this->running->match(
+                        fn($parent) => $this->children->get($parent),
+                        fn() => Set::of(Address::class),
+                    ),
+                    ...$args,
+                );
+            },
+            function(Signal\ChildFailed|Signal\Terminated $signal) use ($parent): void {
+                $this->signal($parent, $signal);
+            },
+        );
         $this->newMailboxes = ($this->newMailboxes)($mailbox);
         /** @var Address<H> */
         $address = $mailbox->address();
@@ -116,5 +123,18 @@ final class InMemory implements Genesis
                     },
                 );
         } while (!$this->mailboxes->empty());
+    }
+
+    /**
+     * @param Maybe<Address<Message>> $parent
+     */
+    private function signal(
+        Maybe $parent,
+        Signal\ChildFailed|Signal\Terminated $signal
+    ): void {
+        $parent->match(
+            fn(Address $parent) => $parent->signal($signal),
+            fn() => null, // this is the case for the root actor
+        );
     }
 }

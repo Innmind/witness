@@ -7,8 +7,11 @@ use Innmind\Witness\{
     Actor,
     Actor\Mailbox,
     Message,
+    Signal,
     Signal\PreRestart,
     Signal\PostStop,
+    Signal\ChildFailed,
+    Signal\Terminated,
     Exception\Stop,
 };
 use Innmind\Immutable\{
@@ -20,25 +23,29 @@ final class InMemory implements Mailbox
 {
     /** @var callable(): Actor<Message> */
     private $factory;
+    /** @var callable(ChildFailed|Terminated): void */
+    private $signal;
     /** @var Maybe<Actor<Message>> */
     private Maybe $actor;
-    /** @var Sequence<Message> */
+    /** @var Sequence<Message|Signal> */
     private Sequence $messages;
     /** @var Address<Message> */
     private Address $address;
 
     /**
      * @param callable(): Actor<Message> $factory
+     * @param callable(ChildFailed|Terminated): void $signal
      */
-    public function __construct(callable $factory)
+    public function __construct(callable $factory, callable $signal)
     {
         $this->factory = $factory;
+        $this->signal = $signal;
         /** @var Maybe<Actor<Message>> */
         $this->actor = Maybe::nothing();
-        /** @var Sequence<Message> */
-        $this->messages = Sequence::of(Message::class);
+        /** @var Sequence<Message|Signal> */
+        $this->messages = Sequence::of(Message::class.'|'.Signal::class);
         /** @var Address<Message> */
-        $this->address = new Address\InMemory(function(Message $message): void {
+        $this->address = new Address\InMemory(function(Message|Signal $message): void {
             $this->publish($message);
         });
     }
@@ -69,7 +76,7 @@ final class InMemory implements Mailbox
                 ->take(1)
                 ->reduce(
                     $this->actor,
-                    function(Maybe $actor, Message $message): Maybe {
+                    function(Maybe $actor, Message|Signal $message): Maybe {
                         /** @var Maybe<Actor<Message>> $actor */
 
                         return $this
@@ -82,11 +89,12 @@ final class InMemory implements Mailbox
                                     return Maybe::just($actor);
                                 } catch (Stop $e) {
                                     $actor(new PostStop);
+                                    ($this->signal)(Terminated::of($this->address));
 
                                     throw $e;
                                 } catch (\Throwable $e) {
                                     $actor(new PreRestart);
-                                    // todo notify the parent actor
+                                    ($this->signal)(ChildFailed::of($this->address));
 
                                     /** @var Maybe<Actor<Message>> */
                                     return Maybe::nothing();
@@ -98,7 +106,7 @@ final class InMemory implements Mailbox
         }
     }
 
-    private function publish(Message $message): void
+    private function publish(Message|Signal $message): void
     {
         $this->messages = ($this->messages)($message);
     }
