@@ -17,6 +17,7 @@ final class User implements Actor
     public function __construct(string $name)
     {
         $this->name = $name;
+        print("$name joined.\n");
     }
 
     public function __invoke(Message|Signal $message): void
@@ -31,7 +32,11 @@ final class User implements Actor
     {
         // in real life don't print to the output
         $greet->get('name')->match(
-            fn($name) => print("{$this->name}: Hi $name 👋\n"),
+            function($name): void {
+                print("{$this->name}: Hi $name 👋\n");
+
+                throw new \Exception('unhandled exception should restart the actor');
+            },
             fn() => print("{$this->name}: Hi guys 🙂\n"),
         );
     }
