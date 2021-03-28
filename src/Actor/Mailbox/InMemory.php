@@ -7,20 +7,32 @@ use Innmind\Witness\{
     Actor,
     Actor\Mailbox,
     Message,
+    Signal\PreRestart,
 };
-use Innmind\Immutable\Sequence;
+use Innmind\Immutable\{
+    Sequence,
+    Maybe,
+};
 
 final class InMemory implements Mailbox
 {
-    private Actor $actor;
+    /** @var callable(): Actor<Message> */
+    private $factory;
+    /** @var Maybe<Actor<Message>> */
+    private Maybe $actor;
     /** @var Sequence<Message> */
     private Sequence $messages;
     /** @var Address<Message> */
     private Address $address;
 
-    public function __construct(Actor $actor)
+    /**
+     * @param callable(): Actor<Message> $factory
+     */
+    public function __construct(callable $factory)
     {
-        $this->actor = $actor;
+        $this->factory = $factory;
+        /** @var Maybe<Actor<Message>> */
+        $this->actor = Maybe::nothing();
         /** @var Sequence<Message> */
         $this->messages = Sequence::of(Message::class);
         /** @var Address<Message> */
@@ -37,10 +49,32 @@ final class InMemory implements Mailbox
     public function consume(Consume $continue): void
     {
         while($continue() && !$this->messages->empty()) {
-            $this
+            $this->actor = $this
                 ->messages
                 ->take(1)
-                ->foreach(fn($message) => ($this->actor)($message));
+                ->reduce(
+                    $this->actor,
+                    function(Maybe $actor, Message $message): Maybe {
+                        /** @var Maybe<Actor<Message>> $actor */
+
+                        return $this
+                            ->start($actor)
+                            ->flatMap(function(Actor $actor) use ($message) {
+                                try {
+                                    $actor($message);
+
+                                    /** @var Maybe<Actor<Message>> */
+                                    return Maybe::just($actor);
+                                } catch (\Throwable $e) {
+                                    $actor(new PreRestart);
+                                    // todo notify the parent actor
+
+                                    /** @var Maybe<Actor<Message>> */
+                                    return Maybe::nothing();
+                                }
+                            });
+                    },
+                );
             $this->messages = $this->messages->drop(1);
         }
     }
@@ -48,5 +82,15 @@ final class InMemory implements Mailbox
     private function publish(Message $message): void
     {
         $this->messages = ($this->messages)($message);
+    }
+
+    /**
+     * @param Maybe<Actor<Message>> $actor
+     *
+     * @return Maybe<Actor<Message>>
+     */
+    private function start(Maybe $actor): Maybe
+    {
+        return $actor->otherwise(fn() => Maybe::just(($this->factory)()));
     }
 }

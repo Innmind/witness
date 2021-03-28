@@ -8,6 +8,7 @@ use Example\{
     Chat,
     Group,
     User,
+    Start,
 };
 use Innmind\CLI\{
     Main,
@@ -25,7 +26,7 @@ new class extends Main
             ->actor(Group::class, fn($genesis) => new Group($genesis))
             ->actor(User::class, fn($genesis, $children, $user) => new User($user));
 
-        $genesis->spawn(Chat::class);
+        $genesis->spawn(Chat::class)(new Start);
         $genesis->run();
     }
 };

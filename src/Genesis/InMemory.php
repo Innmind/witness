@@ -64,16 +64,17 @@ final class InMemory implements Genesis
      */
     public function spawn(string $actor, ...$args): Address
     {
-        /** @var A */
-        $actor = $this->factories->get($actor)(
-            $this,
-            $this->running->match(
-                fn($parent) => $this->children->get($parent),
-                fn() => Set::of(Address::class),
-            ),
-            ...$args,
-        );
-        $mailbox = new Mailbox\InMemory($actor);
+        $mailbox = new Mailbox\InMemory(function() use ($actor, $args): Actor {
+            /** @var A */
+            return $this->factories->get($actor)(
+                $this,
+                $this->running->match(
+                    fn($parent) => $this->children->get($parent),
+                    fn() => Set::of(Address::class),
+                ),
+                ...$args,
+            );
+        });
         $this->mailboxes = ($this->mailboxes)($mailbox);
         /** @var Address<H> */
         $address = $mailbox->address();
