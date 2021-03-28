@@ -14,6 +14,7 @@ use Innmind\Witness\{
 use Innmind\Immutable\{
     Map,
     Set,
+    Maybe,
 };
 
 /**
@@ -25,16 +26,24 @@ final class InMemory implements Genesis
     private Set $mailboxes;
     /** @var Map<string, callable> */
     private Map $factories;
+    /** @var Map<Address<Message>, Set<Address<Message>>> */
+    private Map $children;
+    /** @var Maybe<Address<Message>> */
+    private Maybe $running;
 
     public function __construct()
     {
         $this->mailboxes = Set::of(Mailbox::class);
         $this->factories = Map::of('string', 'callable');
+        /** @var Map<Address<Message>, Set<Address<Message>>> */
+        $this->children = Map::of(Address::class, Set::class);
+        /** @var Maybe<Address<Message>> */
+        $this->running = Maybe::nothing();
     }
 
     /**
      * @param class-string<Actor<Message>> $class
-     * @param callable(Genesis, ...T): Actor<Message> $factory
+     * @param callable(Genesis, Set<Address>, ...T): Actor<Message> $factory
      */
     public function actor(string $class, callable $factory): self
     {
@@ -56,12 +65,28 @@ final class InMemory implements Genesis
     public function spawn(string $actor, ...$args): Address
     {
         /** @var A */
-        $actor = $this->factories->get($actor)($this, ...$args);
+        $actor = $this->factories->get($actor)(
+            $this,
+            $this->running->match(
+                fn($parent) => $this->children->get($parent),
+                fn() => Set::of(Address::class),
+            ),
+            ...$args,
+        );
         $mailbox = new Mailbox\InMemory($actor);
         $this->mailboxes = ($this->mailboxes)($mailbox);
-
         /** @var Address<H> */
-        return new Address\InMemory($mailbox);
+        $address = $mailbox->address();
+        $this->children = ($this->children)($address, Set::of(Address::class));
+        $this->children = $this->running->match(
+            fn($parent) => ($this->children)(
+                $parent,
+                $this->children->get($parent)($address),
+            ),
+            fn() => $this->children,
+        );
+
+        return $address;
     }
 
     public function run(): void
@@ -69,9 +94,10 @@ final class InMemory implements Genesis
         $continue = fn(): Consume => new Consume\Always;
 
         while (true) {
-            $this->mailboxes->foreach(
-                static fn($mailbox) => $mailbox->consume($continue()),
-            );
+            $this->mailboxes->foreach(function($mailbox) use ($continue): void {
+                $this->running = Maybe::just($mailbox->address());
+                $mailbox->consume($continue());
+            });
         }
     }
 }

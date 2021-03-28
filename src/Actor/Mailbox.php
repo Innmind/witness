@@ -5,11 +5,15 @@ namespace Innmind\Witness\Actor;
 
 use Innmind\Witness\{
     Message,
+    Actor\Mailbox\Address,
     Actor\Mailbox\Consume,
 };
 
 interface Mailbox
 {
-    public function publish(Message $message): void;
+    /**
+     * @return Address<Message>
+     */
+    public function address(): Address;
     public function consume(Consume $continue): void;
 }

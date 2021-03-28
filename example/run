@@ -23,7 +23,7 @@ new class extends Main
         $genesis = (new Genesis\InMemory)
             ->actor(Chat::class, fn($genesis) => new Chat($genesis))
             ->actor(Group::class, fn($genesis) => new Group($genesis))
-            ->actor(User::class, fn($genesis, $user) => new User($user));
+            ->actor(User::class, fn($genesis, $children, $user) => new User($user));
 
         $genesis->spawn(Chat::class);
         $genesis->run();

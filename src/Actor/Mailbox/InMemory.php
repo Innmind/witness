@@ -15,17 +15,23 @@ final class InMemory implements Mailbox
     private Actor $actor;
     /** @var Sequence<Message> */
     private Sequence $messages;
+    /** @var Address<Message> */
+    private Address $address;
 
     public function __construct(Actor $actor)
     {
         $this->actor = $actor;
         /** @var Sequence<Message> */
         $this->messages = Sequence::of(Message::class);
+        /** @var Address<Message> */
+        $this->address = new Address\InMemory(function(Message $message): void {
+            $this->publish($message);
+        });
     }
 
-    public function publish(Message $message): void
+    public function address(): Address
     {
-        $this->messages = ($this->messages)($message);
+        return $this->address;
     }
 
     public function consume(Consume $continue): void
@@ -37,5 +43,10 @@ final class InMemory implements Mailbox
                 ->foreach(fn($message) => ($this->actor)($message));
             $this->messages = $this->messages->drop(1);
         }
+    }
+
+    private function publish(Message $message): void
+    {
+        $this->messages = ($this->messages)($message);
     }
 }
