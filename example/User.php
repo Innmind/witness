@@ -35,7 +35,7 @@ final class User implements Actor
         // in real life don't print to the output
         $greet->get('name')->match(
             function($name): void {
-                if ($this->name === 'Alice' && $name === 'John') {
+                if ($this->name === 'Alice' && $name === 'Jane') {
                     print("{$this->name}: I don't like $name, I'm outta here!\n");
 
                     throw new Stop;
