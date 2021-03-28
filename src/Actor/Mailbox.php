@@ -8,6 +8,7 @@ use Innmind\Witness\{
     Actor\Mailbox\Address,
     Actor\Mailbox\Consume,
 };
+use Innmind\Immutable\Maybe;
 
 interface Mailbox
 {
@@ -15,5 +16,9 @@ interface Mailbox
      * @return Address<Message>
      */
     public function address(): Address;
-    public function consume(Consume $continue): void;
+
+    /**
+     * @return Maybe<self> Whether the mailbox still exists after the execution or not
+     */
+    public function consume(Consume $continue): Maybe;
 }

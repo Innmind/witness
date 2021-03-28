@@ -8,6 +8,8 @@ use Innmind\Witness\{
     Actor\Mailbox,
     Message,
     Signal\PreRestart,
+    Signal\PostStop,
+    Exception\Stop,
 };
 use Innmind\Immutable\{
     Sequence,
@@ -46,7 +48,20 @@ final class InMemory implements Mailbox
         return $this->address;
     }
 
-    public function consume(Consume $continue): void
+    public function consume(Consume $continue): Maybe
+    {
+        try {
+            $this->doConsume($continue);
+
+            /** @var Maybe<Mailbox> */
+            return Maybe::just($this);
+        } catch (Stop $e) {
+            /** @var Maybe<Mailbox> */
+            return Maybe::nothing();
+        }
+    }
+
+    private function doConsume(Consume $continue): void
     {
         while($continue() && !$this->messages->empty()) {
             $this->actor = $this
@@ -65,6 +80,10 @@ final class InMemory implements Mailbox
 
                                     /** @var Maybe<Actor<Message>> */
                                     return Maybe::just($actor);
+                                } catch (Stop $e) {
+                                    $actor(new PostStop);
+
+                                    throw $e;
                                 } catch (\Throwable $e) {
                                     $actor(new PreRestart);
                                     // todo notify the parent actor

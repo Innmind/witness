@@ -24,6 +24,8 @@ final class InMemory implements Genesis
 {
     /** @var Set<Mailbox> */
     private Set $mailboxes;
+    /** @var Set<Mailbox> */
+    private Set $newMailboxes;
     /** @var Map<string, callable> */
     private Map $factories;
     /** @var Map<Address<Message>, Set<Address<Message>>> */
@@ -34,6 +36,7 @@ final class InMemory implements Genesis
     public function __construct()
     {
         $this->mailboxes = Set::of(Mailbox::class);
+        $this->newMailboxes = Set::of(Mailbox::class);
         $this->factories = Map::of('string', 'callable');
         /** @var Map<Address<Message>, Set<Address<Message>>> */
         $this->children = Map::of(Address::class, Set::class);
@@ -75,7 +78,7 @@ final class InMemory implements Genesis
                 ...$args,
             );
         });
-        $this->mailboxes = ($this->mailboxes)($mailbox);
+        $this->newMailboxes = ($this->newMailboxes)($mailbox);
         /** @var Address<H> */
         $address = $mailbox->address();
         $this->children = ($this->children)($address, Set::of(Address::class));
@@ -94,11 +97,24 @@ final class InMemory implements Genesis
     {
         $continue = fn(): Consume => new Consume\Always;
 
-        while (true) {
-            $this->mailboxes->foreach(function($mailbox) use ($continue): void {
-                $this->running = Maybe::just($mailbox->address());
-                $mailbox->consume($continue());
-            });
-        }
+        do {
+            $newMailboxes = $this->newMailboxes;
+            $this->newMailboxes = $this->newMailboxes->clear();
+            $this->mailboxes = $this
+                ->mailboxes
+                ->merge($newMailboxes)
+                ->reduce(
+                    $this->mailboxes->clear(),
+                    function(Set $mailboxes, Mailbox $mailbox) use ($continue): Set {
+                        $this->running = Maybe::just($mailbox->address());
+
+                        /** @var Set<Mailbox> */
+                        return $mailbox->consume($continue())->match(
+                            fn(Mailbox $mailbox): Set => ($mailboxes)($mailbox),
+                            fn(): Set => $mailboxes,
+                        );
+                    },
+                );
+        } while (!$this->mailboxes->empty());
     }
 }
