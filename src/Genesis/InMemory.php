@@ -5,6 +5,7 @@ namespace Innmind\Witness\Genesis;
 
 use Innmind\Witness\{
     Genesis,
+    Genesis\InMemory\Children,
     Actor\Mailbox,
     Actor\Mailbox\Address,
     Actor\Mailbox\Consume,
@@ -29,7 +30,7 @@ final class InMemory implements Genesis
     private Set $newMailboxes;
     /** @var Map<string, callable> */
     private Map $factories;
-    /** @var Map<Address<Message>, Set<Address<Message>>> */
+    /** @var Map<Address<Message>, Children> */
     private Map $children;
     /** @var Maybe<Address<Message>> */
     private Maybe $running;
@@ -39,15 +40,15 @@ final class InMemory implements Genesis
         $this->mailboxes = Set::of(Mailbox::class);
         $this->newMailboxes = Set::of(Mailbox::class);
         $this->factories = Map::of('string', 'callable');
-        /** @var Map<Address<Message>, Set<Address<Message>>> */
-        $this->children = Map::of(Address::class, Set::class);
+        /** @var Map<Address<Message>, Children> */
+        $this->children = Map::of(Address::class, Children::class);
         /** @var Maybe<Address<Message>> */
         $this->running = Maybe::nothing();
     }
 
     /**
      * @param class-string<Actor<Message>> $class
-     * @param callable(Genesis, Set<Address>, ...T): Actor<Message> $factory
+     * @param callable(Genesis, Set<Address<Message>>, ...T): Actor<Message> $factory
      */
     public function actor(string $class, callable $factory): self
     {
@@ -69,32 +70,28 @@ final class InMemory implements Genesis
     public function spawn(string $actor, ...$args): Address
     {
         $parent = $this->running;
+        $children = new Children;
         $mailbox = new Mailbox\InMemory(
-            function() use ($actor, $args): Actor {
+            function() use ($children, $actor, $args): Actor {
                 /** @var A */
                 return $this->factories->get($actor)(
                     $this,
-                    $this->running->match(
-                        fn($parent) => $this->children->get($parent),
-                        fn() => Set::of(Address::class),
-                    ),
+                    $children->addresses(),
                     ...$args,
                 );
             },
             function(Signal\ChildFailed|Signal\Terminated $signal) use ($parent): void {
                 $this->signal($parent, $signal);
             },
+            $children,
         );
         $this->newMailboxes = ($this->newMailboxes)($mailbox);
         /** @var Address<H> */
         $address = $mailbox->address();
-        $this->children = ($this->children)($address, Set::of(Address::class));
-        $this->children = $this->running->match(
-            fn($parent) => ($this->children)(
-                $parent,
-                $this->children->get($parent)($address),
-            ),
-            fn() => $this->children,
+        $this->children = ($this->children)($address, $children);
+        $this->running->match(
+            fn($parent) => $this->children->get($parent)->register($mailbox),
+            fn() => null, // nothing to do
         );
 
         return $address;
@@ -122,6 +119,7 @@ final class InMemory implements Genesis
                         );
                     },
                 );
+            // todo garbage collect the children map
         } while (!$this->mailboxes->empty());
     }
 

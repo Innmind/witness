@@ -21,4 +21,11 @@ interface Mailbox
      * @return Maybe<self> Whether the mailbox still exists after the execution or not
      */
     public function consume(Consume $continue): Maybe;
+
+    /**
+     * Stop the actor associate with this mailbox
+     *
+     * Doesn't mean it will be stopped imediately
+     */
+    public function stop(): void;
 }
