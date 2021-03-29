@@ -119,7 +119,12 @@ final class InMemory implements Mailbox
                                     /** @var Maybe<Actor<Message>> */
                                     return Maybe::just($actor);
                                 } catch (\Throwable $e) {
-                                    $actor(new PreRestart);
+                                    try {
+                                        $actor(new PreRestart);
+                                    } catch (\Throwable $e) {
+                                        // discard an error when gracefully shutting down an actor
+                                    }
+
                                     ($this->signal)(ChildFailed::of($this->address));
 
                                     /** @var Maybe<Actor<Message>> */
@@ -193,8 +198,9 @@ final class InMemory implements Mailbox
 
         try {
             $stop();
-            ($this->signal)(Terminated::of($this->address));
         } finally {
+            ($this->signal)(Terminated::of($this->address));
+
             throw new Stop;
         }
     }
