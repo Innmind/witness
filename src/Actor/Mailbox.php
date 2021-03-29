@@ -5,11 +5,30 @@ namespace Innmind\Witness\Actor;
 
 use Innmind\Witness\{
     Message,
+    Actor\Mailbox\Address,
     Actor\Mailbox\Consume,
 };
+use Innmind\Immutable\Maybe;
 
+/**
+ * @internal
+ */
 interface Mailbox
 {
-    public function publish(Message $message): void;
-    public function consume(Consume $continue): void;
+    /**
+     * @return Address<Message>
+     */
+    public function address(): Address;
+
+    /**
+     * @return Maybe<self> Whether the mailbox still exists after the execution or not
+     */
+    public function consume(Consume $continue): Maybe;
+
+    /**
+     * Stop the actor associate with this mailbox
+     *
+     * Doesn't mean it will be stopped imediately
+     */
+    public function stop(): void;
 }

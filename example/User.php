@@ -8,6 +8,7 @@ use Innmind\Witness\{
     Actor,
     Message,
     Signal,
+    Exception\Stop,
 };
 
 final class User implements Actor
@@ -17,21 +18,33 @@ final class User implements Actor
     public function __construct(string $name)
     {
         $this->name = $name;
+        print("$name joined.\n");
     }
 
     public function __invoke(Message|Signal $message): void
     {
         match(\get_class($message)) {
             Greet::class => $this->greet($message),
+            Signal\PostStop::class => print("{$this->name} disconnected.\n"),
             default => null, // discard other messages
         };
     }
 
     private function greet(Greet $greet): void
     {
-        // in real live don't print to the output
+        // in real life don't print to the output
         $greet->get('name')->match(
-            fn($name) => print("{$this->name}: Hi $name 👋\n"),
+            function($name): void {
+                if ($this->name === 'Alice' && $name === 'Jane') {
+                    print("{$this->name}: I don't like $name, I'm outta here!\n");
+
+                    throw new Stop;
+                }
+
+                print("{$this->name}: Hi $name 👋\n");
+
+                throw new \Exception('unhandled exception should restart the actor');
+            },
             fn() => print("{$this->name}: Hi guys 🙂\n"),
         );
     }

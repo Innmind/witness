@@ -9,6 +9,7 @@ use Innmind\Witness\{
     Actor\Mailbox\Address,
     Message,
     Signal,
+    Exception\Stop,
 };
 use Innmind\Immutable\Set;
 
@@ -17,6 +18,7 @@ final class Group implements Actor
     private Genesis $system;
     /** @var Set<Address> */
     private Set $users;
+    private int $failures = 0;
 
     public function __construct(Genesis $system)
     {
@@ -28,6 +30,9 @@ final class Group implements Actor
     {
         match(\get_class($message)) {
             Add::class => $this->addUser($message),
+            Signal\PostStop::class => print("System: killing the group...\n"),
+            Signal\ChildFailed::class => $this->printFailure($message->child()),
+            Signal\Terminated::class => $this->remove($message->child()),
             default => null, // discard other messages
         };
     }
@@ -52,5 +57,21 @@ final class Group implements Actor
                 fn(Address $user) => ($this->users)($user),
                 fn() => $this->users,
             );
+    }
+
+    private function remove(Address $user): void
+    {
+        $this->users = $this->users->remove($user);
+        print("System: someone left the group\n");
+    }
+
+    private function printFailure(Address $user): void
+    {
+        ++$this->failures;
+        print("System: someone had a connectivity issue\n");
+
+        if ($this->failures >= 4) {
+            throw new Stop;
+        }
     }
 }
