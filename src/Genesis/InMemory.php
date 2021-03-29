@@ -91,7 +91,7 @@ final class InMemory implements Genesis
         $this->children = ($this->children)($address, $children);
         $this->running->match(
             fn($parent) => $this->children->get($parent)->register($mailbox),
-            fn() => null, // nothing to do
+            static fn() => null, // nothing to do
         );
 
         return $address;
@@ -99,7 +99,7 @@ final class InMemory implements Genesis
 
     public function run(): void
     {
-        $continue = fn(): Consume => new Consume\Always;
+        $continue = static fn(): Consume => new Consume\Always;
 
         do {
             $newMailboxes = $this->newMailboxes;
@@ -114,8 +114,8 @@ final class InMemory implements Genesis
 
                     /** @var Set<Mailbox> */
                     return $mailbox->consume($continue())->match(
-                        fn(Mailbox $mailbox): Set => ($mailboxes)($mailbox),
-                        fn(): Set => $mailboxes,
+                        static fn(Mailbox $mailbox): Set => ($mailboxes)($mailbox),
+                        static fn(): Set => $mailboxes,
                     );
                 },
             );
@@ -130,8 +130,8 @@ final class InMemory implements Genesis
         Signal\ChildFailed|Signal\Terminated $signal
     ): void {
         $parent->match(
-            fn(Address $parent) => $parent->signal($signal),
-            fn() => null, // this is the case for the root actor
+            static fn(Address $parent) => $parent->signal($signal),
+            static fn() => null, // this is the case for the root actor
         );
     }
 

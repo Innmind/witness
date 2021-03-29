@@ -89,14 +89,13 @@ final class InMemory implements Mailbox
         // messages. New messages are readded at the end of this function
         $this->messages = $this->messages->clear();
 
-        while($continue() && !$messages->empty()) {
+        while ($continue() && !$messages->empty()) {
             $this->actor = $messages
                 ->take(1)
                 ->reduce(
                     $this->actor,
                     function(Maybe $actor, Message|Signal $message): Maybe {
                         /** @var Maybe<Actor<Message>> $actor */
-
                         $this->attemptDefinitiveStop($actor, $message);
                         $this->garbageCollectChildren($message);
 
@@ -188,8 +187,8 @@ final class InMemory implements Mailbox
         }
 
         $stop = $actor->match(
-            static fn($actor) => fn() => $actor($message),
-            static fn() => fn() => null,
+            static fn($actor) => static fn() => $actor($message),
+            static fn() => static fn() => null,
         );
 
         try {
