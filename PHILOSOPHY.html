@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>innmind/witness</title>
+    <link rel="stylesheet" href="https://innmind.github.io/witness/static/main.css"/>
+    <link rel="stylesheet" href="https://innmind.github.io/witness/static/styles/default.css"/>
+    <link rel="stylesheet" href="https://innmind.github.io/witness/static/styles/atom-one-dark.css"/>
+    <script src="https://innmind.github.io/witness/static/highlight.pack.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+</head>
+<body>
+    <header>
+        <a href="https://innmind.github.io/witness/"><code>witness</code></a>
+    </header>
+    <aside>
+        <ul>
+                    <li>
+                                    <a href="https://innmind.github.io/witness/index.html">
+                        Getting started
+                    </a>
+                            </li>
+                    <li class="current">
+                                    <a href="https://innmind.github.io/witness/PHILOSOPHY.html">
+                        Philosophy
+                    </a>
+                            </li>
+                </ul>
+    </aside>
+    <main><h1 id="philosophy"><a href="#philosophy" class="anchor">#</a>Philosophy</h1>
+<h2 id="why-"><a href="#why-" class="anchor">#</a>Why ?</h2>
+<p>The <a href="https://en.wikipedia.org/wiki/Actor_model">Actor Model</a> is intended for highly concurrent applications handling a large volume of data. This model allows for highly available and resilient systems (with self healing mechanisms). A popular number for this model is Ericsson reaching an availability of <a href="https://en.wikipedia.org/wiki/Erlang_(programming_language)#History"><code>99.999999999</code>%</a> in one of its products in 1998, that's nine nines meaning a downtime of about <em>31 milliseconds</em> per year. This level of availability was supposed to be unreachable.</p>
+<p>Famous examples of products built on top of this model are WhatsApp (via <a href="https://www.erlang.org/">Erlang</a>) and Halo 4 Multiplayer backend (via <a href="https://dotnet.github.io/orleans/">Orleans</a>).</p>
+<p>To be able to provide a high concurrency the language/framework must allow a high number of actors, the goal is to divide the work as mush as the user needs to. All tools (<a href="https://www.erlang.org/">Erlang</a>, <a href="https://www.ponylang.io/">Ponylang</a>, <a href="https://akka.io/">Akka</a>) leverage threading under the hood to lower the cost of creating an actor.</p>
+<p>All that being said, PHP seems to be an ill fitted language to use such programming model as it doesn't provide some advanced mechanism such as threading. Indeed PHP is not the perfect for this task since it was not built for this king of things (unlike Erlang). But it has advantages compared to other tools like Akka.</p>
+<p>PHP is a share nothing language, each process is independent which is a core principle of the Actor Model to allow concurrency. This ability combined with the fact that the language is interpreted means that you can deploy your code, start a new process and you can have 2 processes of an application running 2 differents versions of the code; you don't have to shutdown all your application to release a new version. Another good point for availability.</p>
+<p>PHP 8 introduces a JIT compiler, opening the door for new possibilities for PHP applications including long lived processes. Actors being long lived processes could benefit from this new feature.</p>
+<p>The last advantage is a strategic one for companies already using PHP. Applications requirements evolve over time and current programming model may reach their limits pushing teams to search for new ways to solve their problems. Allowing PHP developers to experiment with the Actor Model allows companies to evolve at a lower cost and lower risk. Companies wouldn't have to either train their teams to a new language or hire new developers. In the case the Actor Model would reach its limit with PHP, the team would have gained enough experience to move the application to a more fitted language.</p>
+<p>PHP applications realm as greatly increased over the years, it could evolve once more.</p>
+<h2 id="development-process"><a href="#development-process" class="anchor">#</a>Development process</h2>
+<p>Building such a tool will take quite some time before reaching a stable release, but in order to provide enough value along the way the development will follow these steps:</p>
+<ul>
+<li>make it work</li>
+<li>make it simple</li>
+<li>make it fast</li>
+</ul></main>
+    <footer>
+        <a href="https://github.com/innmind/witness/" target="_blank">GitHub</a>
+    </footer>
+</body>
+</html>
