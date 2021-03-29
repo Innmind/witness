@@ -89,6 +89,7 @@ final class InMemory implements Genesis
         /** @var Address<H> */
         $address = $mailbox->address();
         $this->children = ($this->children)($address, $children);
+        /** @psalm-suppress UnusedMethodCall As Children class is mutable */
         $this->running->match(
             fn($parent) => $this->children->get($parent)->register($mailbox),
             static fn() => null, // nothing to do
@@ -129,6 +130,7 @@ final class InMemory implements Genesis
         Maybe $parent,
         Signal\ChildFailed|Signal\Terminated $signal
     ): void {
+        /** @psalm-suppress UnusedMethodCall As Address class is mutable */
         $parent->match(
             static fn(Address $parent) => $parent->signal($signal),
             static fn() => null, // this is the case for the root actor
