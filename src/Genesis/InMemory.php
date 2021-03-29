@@ -104,22 +104,21 @@ final class InMemory implements Genesis
         do {
             $newMailboxes = $this->newMailboxes;
             $this->newMailboxes = $this->newMailboxes->clear();
-            $this->mailboxes = $this
-                ->mailboxes
-                ->merge($newMailboxes)
-                ->reduce(
-                    $this->mailboxes->clear(),
-                    function(Set $mailboxes, Mailbox $mailbox) use ($continue): Set {
-                        $this->running = Maybe::just($mailbox->address());
+            $mailboxes = $this->mailboxes->merge($newMailboxes);
+            $this->garbageCollect($mailboxes);
 
-                        /** @var Set<Mailbox> */
-                        return $mailbox->consume($continue())->match(
-                            fn(Mailbox $mailbox): Set => ($mailboxes)($mailbox),
-                            fn(): Set => $mailboxes,
-                        );
-                    },
-                );
-            // todo garbage collect the children map
+            $this->mailboxes = $mailboxes->reduce(
+                $this->mailboxes->clear(),
+                function(Set $mailboxes, Mailbox $mailbox) use ($continue): Set {
+                    $this->running = Maybe::just($mailbox->address());
+
+                    /** @var Set<Mailbox> */
+                    return $mailbox->consume($continue())->match(
+                        fn(Mailbox $mailbox): Set => ($mailboxes)($mailbox),
+                        fn(): Set => $mailboxes,
+                    );
+                },
+            );
         } while (!$this->mailboxes->empty());
     }
 
@@ -133,6 +132,20 @@ final class InMemory implements Genesis
         $parent->match(
             fn(Address $parent) => $parent->signal($signal),
             fn() => null, // this is the case for the root actor
+        );
+    }
+
+    /**
+     * @param Set<Mailbox> $mailboxes
+     */
+    private function garbageCollect(Set $mailboxes): void
+    {
+        $addresses = $mailboxes->mapTo(
+            Address::class,
+            static fn($mailbox) => $mailbox->address(),
+        );
+        $this->children = $this->children->filter(
+            static fn($address) => $addresses->contains($address),
         );
     }
 }
