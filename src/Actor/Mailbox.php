@@ -10,6 +10,9 @@ use Innmind\Witness\{
 };
 use Innmind\Immutable\Maybe;
 
+/**
+ * @internal
+ */
 interface Mailbox
 {
     /**
