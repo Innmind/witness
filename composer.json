@@ -15,7 +15,8 @@
         "issues": "http://github.com/Innmind/wtiness/issues"
     },
     "require": {
-        "php": "~8.2"
+        "php": "~8.2",
+        "innmind/immutable": "~5.10"
     },
     "autoload": {
         "psr-4": {
