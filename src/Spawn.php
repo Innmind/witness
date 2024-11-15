@@ -4,6 +4,7 @@ declare(strict_types = 1);
 namespace Innmind\Witness;
 
 use Innmind\Witness\Actor\Address;
+use Innmind\Immutable\Maybe;
 
 interface Spawn
 {
@@ -15,7 +16,7 @@ interface Spawn
      * @param class-string<T> $actor
      * @param A $argument
      *
-     * @return Address<T>
+     * @return Maybe<Address<T>>
      */
-    public function __invoke(string $actor, Message $argument): Address;
+    public function __invoke(string $actor, Message $argument): Maybe;
 }
