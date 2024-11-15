@@ -15,6 +15,8 @@ final class Payload
     }
 
     /**
+     * @psalm-pure
+     *
      * @param array<array-key, string|int|float|bool|self|Address|null> $shape
      */
     public static function of(array $shape): self
@@ -22,6 +24,10 @@ final class Payload
         return new self;
     }
 
+    /**
+     * @psalm-pure
+     * @no-named-arguments
+     */
     public static function values(string|int|float|bool|self|Address|null ...$values): self
     {
         return new self;

@@ -18,7 +18,8 @@
         "php": "~8.2",
         "innmind/immutable": "~5.10",
         "innmind/operating-system": "^5.2",
-        "innmind/mantle": "^2.1"
+        "innmind/mantle": "^2.1",
+        "ramsey/uuid": "^4.7"
     },
     "autoload": {
         "psr-4": {
