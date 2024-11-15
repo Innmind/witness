@@ -41,7 +41,6 @@ final class Process
             return;
         }
 
-        /** @var ?Actor */
         $actor = $mailbox
             ->pull()
             ->keep(Instance::of(Init::class))
@@ -55,6 +54,7 @@ final class Process
                     $this->name,
                 ),
             ))
+            ->keep(Instance::of(Actor::class))
             ->match(
                 static fn($actor) => $actor,
                 static fn() => null,
