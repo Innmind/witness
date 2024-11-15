@@ -6,6 +6,9 @@ namespace Innmind\Witness;
 use Innmind\Witness\Message\Payload;
 use Innmind\Immutable\Maybe;
 
+/**
+ * @psalm-immutable
+ */
 interface Message
 {
     /**

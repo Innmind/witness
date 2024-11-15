@@ -9,6 +9,9 @@ use Innmind\Witness\{
     Message,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Payload
 {
     private function __construct()
