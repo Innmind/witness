@@ -1,0 +1,30 @@
+{
+    "name": "innmind/witness",
+    "type": "library",
+    "description": "Actor Model implementation",
+    "keywords": ["actor", "model", "distributed", "system"],
+    "homepage": "http://github.com/Innmind/witness",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Baptiste Langlade",
+            "email": "baptiste.langlade@hey.com"
+        }
+    ],
+    "support": {
+        "issues": "http://github.com/Innmind/wtiness/issues"
+    },
+    "require": {
+        "php": "~8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Innmind\\Witness\\": "src/"
+        }
+    },
+    "require-dev": {
+        "vimeo/psalm": "~5.6",
+        "innmind/black-box": "^5.5.1",
+        "innmind/coding-standard": "~2.0"
+    }
+}
