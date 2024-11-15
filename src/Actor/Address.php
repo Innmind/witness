@@ -8,7 +8,6 @@ use Innmind\Witness\{
     Actor\Address\Name,
     Message,
 };
-use Innmind\OperatingSystem\OperatingSystem;
 use Innmind\Immutable\{
     Maybe,
     Sequence,
@@ -22,7 +21,6 @@ final class Address
 {
     private function __construct(
         private Name $name,
-        private OperatingSystem $os,
         private Mailbox $mailbox,
     ) {
     }
@@ -37,17 +35,15 @@ final class Address
      */
     public function __invoke(Sequence $messages): Maybe
     {
-        return $this->mailbox->push($this->os, $messages);
+        return $this->mailbox->push($messages);
     }
 
     public static function of(
         Name $name,
-        OperatingSystem $os,
         Mailbox $mailbox,
     ): self {
         return new self(
             $name,
-            $os,
             $mailbox,
         );
     }

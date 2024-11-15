@@ -43,7 +43,7 @@ final class Process
 
         /** @var ?Actor */
         $actor = $mailbox
-            ->pull($os)
+            ->pull()
             ->keep(Instance::of(Init::class))
             ->flatMap(fn($init) => ($this->factories)(
                 $init->actor(),
@@ -72,7 +72,7 @@ final class Process
             try {
                 // todo handle pulling signals from children
                 $receive ??= $mailbox
-                    ->pull($os)
+                    ->pull()
                     ->keep(Instance::of(Tell::class))
                     ->flatMap(
                         fn($tell) => $this

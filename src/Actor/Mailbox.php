@@ -6,7 +6,6 @@ namespace Innmind\Witness\Actor;
 use Innmind\Witness\{
     Message,
 };
-use Innmind\OperatingSystem\OperatingSystem;
 use Innmind\Immutable\{
     Maybe,
     Sequence,
@@ -22,10 +21,10 @@ interface Mailbox
      *
      * @return Maybe<SideEffect>
      */
-    public function push(OperatingSystem $os, Sequence $messages): Maybe;
+    public function push(Sequence $messages): Maybe;
 
     /**
      * @return Maybe<Message>
      */
-    public function pull(OperatingSystem $os): Maybe;
+    public function pull(): Maybe;
 }
