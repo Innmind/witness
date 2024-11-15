@@ -3,15 +3,51 @@ declare(strict_types = 1);
 
 namespace Innmind\Witness\Receive;
 
+/**
+ * @psalm-immutable
+ */
 final class Continuation
 {
+    private function __construct(
+        private bool $continue,
+    ) {
+    }
+
+    /**
+     * @psalm-pure
+     * @internal
+     */
+    public static function new(): self
+    {
+        return new self(true);
+    }
+
     public function continue(): self
     {
-        return $this;
+        return new self(true);
     }
 
     public function stop(): self
     {
-        return $this;
+        return new self(false);
+    }
+
+    /**
+     * @template C
+     * @template S
+     * @internal
+     *
+     * @param callable(): C $continue
+     * @param callable(): S $stop
+     *
+     * @return C|S
+     */
+    public function match(callable $continue, callable $stop): mixed
+    {
+        /** @psalm-suppress ImpureFunctionCall */
+        return match ($this->continue) {
+            true => $continue(),
+            false => $stop(),
+        };
     }
 }
