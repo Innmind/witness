@@ -12,7 +12,7 @@
         }
     ],
     "support": {
-        "issues": "http://github.com/Innmind/wtiness/issues"
+        "issues": "http://github.com/Innmind/witness/issues"
     },
     "require": {
         "php": "~8.2",
