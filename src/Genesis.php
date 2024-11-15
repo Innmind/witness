@@ -18,7 +18,7 @@ interface Genesis
      * @template T of Actor<I, A>
      *
      * @param class-string<T> $class
-     * @param callable(A, Address<T>): T $factory
+     * @param callable(A, Address<T>, Spawn): T $factory
      */
     public function actor(string $class, callable $factory): self;
 
