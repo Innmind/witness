@@ -54,7 +54,6 @@ final class Process
                     $this->name,
                 ),
             ))
-            ->keep(Instance::of(Actor::class))
             ->match(
                 static fn($actor) => $actor,
                 static fn() => null,
