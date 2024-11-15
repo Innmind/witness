@@ -15,7 +15,7 @@ interface Spawn
      * @param class-string<T> $actor
      * @param A $argument
      *
-     * @return Address<I, T>
+     * @return Address<T>
      */
     public function __invoke(string $actor, Message $argument): Address;
 }

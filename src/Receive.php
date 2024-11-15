@@ -14,14 +14,14 @@ use Innmind\Witness\{
 
 final class Receive
 {
-    /** @var ?array{Message, Address<Message, Actor<Message, Message>>} */
+    /** @var ?array{Message, Address} */
     private ?array $message;
     private ChildFailed|PostStop|PreRestart|Terminated|null $signal;
     /** @var callable(Continuation): Continuation */
     private $handle;
 
     /**
-     * @param ?array{Message, Address<Message, Actor<Message, Message>>} $message
+     * @param ?array{Message, Address} $message
      * @param callable(Continuation): Continuation $handle
      */
     private function __construct(
@@ -34,9 +34,6 @@ final class Receive
         $this->handle = $handle;
     }
 
-    /**
-     * @param Address<Message, Actor<Message, Message>> $sender
-     */
     public static function message(Message $message, Address $sender): self
     {
         return new self(
@@ -58,11 +55,9 @@ final class Receive
     /**
      * @psalm-mutation-free
      * @template M of Message
-     * @template I of Message
-     * @template A of Message
      *
      * @param class-string<M> $class
-     * @param callable(M, Address<I, Actor<I, A>>, Continuation): Continuation $handle
+     * @param callable(M, Address, Continuation): Continuation $handle
      */
     public function on(string $class, callable $handle): self
     {
@@ -73,7 +68,6 @@ final class Receive
         [$message, $sender] = $this->message;
 
         if ($message instanceof $class) {
-            /** @psalm-suppress InvalidArgument No need to handle address types here */
             return new self(
                 $this->message,
                 $this->signal,
@@ -90,17 +84,14 @@ final class Receive
 
     /**
      * @psalm-mutation-free
-     * @template M of Message
-     * @template A of Message
      *
-     * @param callable(Address<M, Actor<M, A>>, Continuation):Continuation $handle
+     * @param callable(Address, Continuation):Continuation $handle
      */
     public function onChildFailure(callable $handle): self
     {
         if ($this->signal instanceof ChildFailed) {
             $signal = $this->signal;
 
-            /** @psalm-suppress InvalidArgument No need to handle address types here */
             return new self(
                 $this->message,
                 $this->signal,
@@ -116,17 +107,14 @@ final class Receive
 
     /**
      * @psalm-mutation-free
-     * @template M of Message
-     * @template A of Message
      *
-     * @param callable(Address<M, Actor<M, A>>, Continuation): Continuation $handle
+     * @param callable(Address, Continuation): Continuation $handle
      */
     public function onChildTerminated(callable $handle): self
     {
         if ($this->signal instanceof Terminated) {
             $signal = $this->signal;
 
-            /** @psalm-suppress InvalidArgument No need to handle address types here */
             return new self(
                 $this->message,
                 $this->signal,

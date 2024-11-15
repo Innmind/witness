@@ -13,12 +13,14 @@ use Innmind\Immutable\{
 };
 
 /**
- * @template M of Message
- * @template T of Actor<M>
+ * @template T of Actor
  */
 interface Address
 {
     /**
+     * @template M of Message
+     * @template I of T<M>
+     *
      * @param M $message
      *
      * @return Maybe<SideEffect>
