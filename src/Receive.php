@@ -153,7 +153,7 @@ final class Receive
                 static function(Continuation $continuation) use ($handle): Continuation {
                     $handle();
 
-                    return $continuation;
+                    return $continuation->stop();
                 },
             );
         }
