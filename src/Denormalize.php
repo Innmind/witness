@@ -4,7 +4,6 @@ declare(strict_types = 1);
 namespace Innmind\Witness;
 
 use Innmind\Witness\Message\Payload;
-use Innmind\TimeContinuum\Clock;
 use Innmind\Immutable\Maybe;
 
 final class Denormalize
@@ -18,14 +17,14 @@ final class Denormalize
     /**
      * @return Maybe<Message>
      */
-    public function __invoke(Clock $clock, Payload $payload): Maybe
+    public function __invoke(Payload $payload): Maybe
     {
         /** @var Maybe<Message> */
         $message = Maybe::nothing();
 
         foreach ($this->classes as $class) {
             $message = $message->otherwise(
-                fn() => $class::denormalize($this, $clock, $payload),
+                fn() => $class::denormalize($this, $payload),
             );
         }
 

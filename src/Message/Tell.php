@@ -8,7 +8,6 @@ use Innmind\Witness\{
     Message,
     Denormalize,
 };
-use Innmind\TimeContinuum\Clock;
 use Innmind\Validation\Is;
 use Innmind\Immutable\{
     Maybe,
@@ -43,7 +42,6 @@ final class Tell implements Message
      */
     public static function denormalize(
         Denormalize $denormalize,
-        Clock $clock,
         Payload $payload,
     ): Maybe {
         return Maybe::just($payload->unwrap())
@@ -70,10 +68,7 @@ final class Tell implements Message
                     $shape
                         ->get('message')
                         ->keep(Instance::of(Payload::class))
-                        ->flatMap(static fn($payload) => $denormalize(
-                            $clock,
-                            $payload,
-                        )),
+                        ->flatMap($denormalize),
                 )->map(static fn($_, Name $sender, Message $message) => new self(
                     $sender,
                     $message,

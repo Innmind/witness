@@ -8,7 +8,6 @@ use Innmind\Witness\{
     Denormalize,
     Actor,
 };
-use Innmind\TimeContinuum\Clock;
 use Innmind\Validation\Is;
 use Innmind\Immutable\{
     Maybe,
@@ -47,7 +46,6 @@ final class Init implements Message
      */
     public static function denormalize(
         Denormalize $denormalize,
-        Clock $clock,
         Payload $payload,
     ): Maybe {
         return Maybe::just($payload->unwrap())
@@ -64,10 +62,7 @@ final class Init implements Message
                     $shape
                         ->get('argument')
                         ->keep(Instance::of(Payload::class))
-                        ->flatMap(static fn($payload) => $denormalize(
-                            $clock,
-                            $payload,
-                        )),
+                        ->flatMap($denormalize),
                 )->map(
                     /** @psalm-suppress ArgumentTypeCoercion Due to the actor string not being a class-string */
                     static fn(string $_, string $actor, Message $argument) => new self(
