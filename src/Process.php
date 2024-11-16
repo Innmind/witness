@@ -168,17 +168,17 @@ final class Process
             // Receive::onPostStop() callable.
         }
 
+        $this->mailboxes->delete($this->name)->match(
+            static fn() => null, // deleted
+            static fn() => null, // todo what to do in this case ?
+        );
+
         if (\is_null($parent)) {
             // This means this is the root actor. We should return a value to
             // tell the Supervisor it should terminate itself
             // todo
             return;
         }
-
-        $this->mailboxes->delete($this->name)->match(
-            static fn() => null, // deleted
-            static fn() => null, // todo what to do in this case ?
-        );
 
         $message = Message\Terminated::new();
         $this
