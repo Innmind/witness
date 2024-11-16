@@ -10,11 +10,13 @@ use Innmind\Witness\{
     Message\Payload,
     Signal\PostStop,
     Signal\PreRestart,
+    Signal\Terminated,
     Receive\Continuation,
 };
 use Innmind\Mantle\Task;
 use Innmind\OperatingSystem\OperatingSystem;
 use Innmind\Immutable\{
+    Maybe,
     Sequence,
     Predicate\Instance,
 };
@@ -90,13 +92,18 @@ final class Process
                     ->flatMap($this->denormalize)
                     ->keep(Instance::of(Tell::class))
                     ->flatMap(
-                        fn($tell) => $this
-                            ->mailboxes
-                            ->for($os, $tell->sender())
-                            ->map(fn($mailbox) => Receive::message(
-                                $tell->message(),
-                                $mailbox->address($this->name),
-                            )),
+                        fn($tell) => match (true) {
+                            $tell->message() instanceof Message\Terminated => Maybe::just(
+                                Receive::signal(Terminated::of($tell->sender())),
+                            ),
+                            default => $this
+                                ->mailboxes
+                                ->for($os, $tell->sender())
+                                ->map(fn($mailbox) => Receive::message(
+                                    $tell->message(),
+                                    $mailbox->address($this->name),
+                                )),
+                        },
                     )
                     ->match(
                         static fn($receive) => $receive,
@@ -145,7 +152,7 @@ final class Process
 
         // todo destroy mailbox
 
-        $message = Message\Signal::terminated();
+        $message = Message\Terminated::new();
         $this
             ->mailboxes
             ->for($os, $parent)

@@ -36,8 +36,8 @@ final class Receive
 
     public static function message(Message $message, Address $sender): self
     {
-        if ($message instanceof Message\Signal) {
-            return self::signal($message->signal($sender));
+        if ($message instanceof Message\ChildFailed) {
+            return self::signal(ChildFailed::of($sender));
         }
 
         return new self(
@@ -112,7 +112,7 @@ final class Receive
     /**
      * @psalm-mutation-free
      *
-     * @param callable(Address, Continuation): Continuation $handle
+     * @param callable(Address\Name, Continuation): Continuation $handle
      */
     public function onChildTerminated(callable $handle): self
     {

@@ -3,7 +3,7 @@ declare(strict_types = 1);
 
 namespace Innmind\Witness\Signal;
 
-use Innmind\Witness\Actor\Address;
+use Innmind\Witness\Actor\Address\Name;
 
 /**
  * @psalm-immutable
@@ -11,19 +11,19 @@ use Innmind\Witness\Actor\Address;
 final class Terminated
 {
     private function __construct(
-        private Address $child,
+        private Name $child,
     ) {
     }
 
     /**
      * @psalm-pure
      */
-    public static function of(Address $child): self
+    public static function of(Name $child): self
     {
         return new self($child);
     }
 
-    public function child(): Address
+    public function child(): Name
     {
         return $this->child;
     }
