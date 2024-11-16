@@ -15,6 +15,9 @@ interface Mailbox
     public function address(Address\Name $sender): Address;
 
     /**
+     * Trying to push to a no longer existent mailbox should return a SideEffect
+     * as the sender can't know if the address it has is still valid or not.
+     *
      * @param Sequence<Serialized> $messages
      *
      * @return Maybe<SideEffect>
