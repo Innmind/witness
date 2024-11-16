@@ -165,12 +165,21 @@ final class Receive
     /**
      * @psalm-mutation-free
      *
-     * @param callable(Continuation): Continuation $handle
+     * @param callable(\Throwable, Continuation): Continuation $handle
      */
     public function onRestart(callable $handle): self
     {
         if ($this->signal instanceof Restart) {
-            return new self($this->message, $this->signal, $handle);
+            $signal = $this->signal;
+
+            return new self(
+                $this->message,
+                $this->signal,
+                static fn(Continuation $continuation) => $handle(
+                    $signal->error(),
+                    $continuation,
+                ),
+            );
         }
 
         return $this;

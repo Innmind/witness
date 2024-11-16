@@ -9,4 +9,22 @@ namespace Innmind\Witness\Signal;
  */
 final class Restart
 {
+    private function __construct(
+        private \Throwable $error,
+    ) {
+    }
+
+    /**
+     * @psalm-pure
+     */
+    public static function of(
+        \Throwable $error,
+    ): self {
+        return new self($error);
+    }
+
+    public function error(): \Throwable
+    {
+        return $this->error;
+    }
 }

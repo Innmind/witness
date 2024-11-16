@@ -174,7 +174,7 @@ final class Process
                     }
                 }
 
-                $receive = Receive::signal(new Restart);
+                $receive = Receive::signal(Restart::of($e));
                 $continue = true;
             }
         } while ($continue);
