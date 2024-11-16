@@ -46,11 +46,12 @@ final class Process
             return;
         }
 
+        $children = Spawn\Children::start();
         $spawn = Spawn::of(
             $os,
             $this->mailboxes,
             $this->scheduled,
-            $counter = Spawn\Counter::start(),
+            $children,
             $this->name,
         );
 
@@ -126,9 +127,10 @@ final class Process
                 ->keep(Instance::of(Tell::class))
                 ->flatMap(
                     fn($tell) => match (true) {
-                        $tell->message() instanceof Message\Terminated => Maybe::just(
-                            Receive::signal(Terminated::of($tell->sender())),
-                        )->map($counter->decrement(...)),
+                        $tell->message() instanceof Message\Terminated => Maybe::just($tell->sender())
+                            ->map($children->remove(...))
+                            ->map(Terminated::of(...))
+                            ->map(Receive::signal(...)),
                         default => $this
                             ->mailboxes
                             ->for($os, $tell->sender())
@@ -189,7 +191,7 @@ final class Process
         // todo force stopping after a grace period in case we never receive
         // enough Terminated signals. This case could happen in case of network
         // errors. Or the children are unable to send the signal to their parent.
-        while (!$counter->childless()) {
+        while (!$children->childless()) {
             $receive = $mailbox
                 ->pull()
                 ->flatMap(fn($serialized) => Payload::deserialize(
@@ -203,10 +205,11 @@ final class Process
                 ->flatMap(
                     static fn($tell) => Maybe::just($tell->message())
                         ->keep(Instance::of(Message\Terminated::class))
-                        ->map(static fn($message) => Receive::signal(
-                            Terminated::of($tell->sender()),
-                        )),
+                        ->map(static fn() => $tell->sender()),
                 )
+                ->map($children->remove(...))
+                ->map(Terminated::of(...))
+                ->map(Receive::signal(...))
                 ->match(
                     static fn($receive) => $receive,
                     static fn() => null,
@@ -217,8 +220,6 @@ final class Process
                 // signals are allowed when stopping an actor.
                 continue;
             }
-
-            $counter->decrement(null);
 
             if (!$receiveTerminations) {
                 // If the actor asked to not continue when receiving a
@@ -239,6 +240,10 @@ final class Process
                 // We don't allow the actor to recover from failures.
             }
         }
+
+        // todo delete the mailboxes of the remaining children after the grace
+        // period
+        // $children->list()->map($address->name())->map(mailboxes->delete(...))
 
         try {
             // In any case the actor can't restart when stopping.
