@@ -7,7 +7,7 @@ namespace Innmind\Witness\Signal;
  * @psalm-immutable
  * @internal
  */
-final class Restart
+final class Recover
 {
     private function __construct(
         private \Throwable $error,
