@@ -106,7 +106,23 @@ final class Process
         }
 
         if (\is_null($actor)) {
-            // todo send parent failed ?
+            if (!\is_null($parent)) {
+                $message = Message\Child\Failure::of(new \RuntimeException(
+                    'Failed to start the actor',
+                ));
+                $parent(Sequence::of($message))->match(
+                    static fn() => null,
+                    static fn() => null, // todo what to do in this case ?
+                );
+            }
+
+            $this->mailboxes->delete($this->name)->match(
+                static fn() => null,
+                static fn() => null, // todo what to do in this case ?
+            );
+
+            // todo when this is the root actor we should return a value to tell
+            // the supervisor to stop.
             return;
         }
 
