@@ -12,7 +12,7 @@ use Innmind\Immutable\{
 
 interface Mailbox
 {
-    public function address(): Address;
+    public function address(Address\Name $sender): Address;
 
     /**
      * @param Sequence<Serialized> $messages

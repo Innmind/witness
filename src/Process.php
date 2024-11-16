@@ -48,6 +48,7 @@ final class Process
             ->flatMap(fn($serialized) => Payload::deserialize(
                 $os,
                 $this->mailboxes,
+                $this->name,
                 $serialized,
             ))
             ->flatMap($this->denormalize)
@@ -83,6 +84,7 @@ final class Process
                     ->flatMap(fn($serialized) => Payload::deserialize(
                         $os,
                         $this->mailboxes,
+                        $this->name,
                         $serialized,
                     ))
                     ->flatMap($this->denormalize)
@@ -91,9 +93,9 @@ final class Process
                         fn($tell) => $this
                             ->mailboxes
                             ->for($os, $tell->sender())
-                            ->map(static fn($mailbox) => Receive::message(
+                            ->map(fn($mailbox) => Receive::message(
                                 $tell->message(),
-                                $mailbox->address(),
+                                $mailbox->address($this->name),
                             )),
                     )
                     ->match(

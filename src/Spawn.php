@@ -36,6 +36,10 @@ final class Spawn
      */
     public function __invoke(string $actor, Message $argument): Maybe
     {
+        $message = Init::of($actor, $argument)
+            ->normalize()
+            ->serialize();
+
         /**
          * Force the type otherwise the address type should be carried by the
          * address name, which is impractical and would complexify the
@@ -50,13 +54,11 @@ final class Spawn
                     ->scheduled
                     ->push(
                         $this->os,
-                        $mailbox->address()->name(),
+                        $mailbox->address($this->spawner)->name(),
                     )
-                    ->map(static fn() => $mailbox->address()),
-            )
-            ->flatMap(static fn($address) => $address(Sequence::of(Init::of($actor, $argument)))->map(
-                static fn() => $address,
-            ));
+                    ->flatMap(static fn() => $mailbox->push(Sequence::of($message)))
+                    ->map(fn() => $mailbox->address($this->spawner)),
+            );
     }
 
     public static function of(

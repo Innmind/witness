@@ -102,6 +102,10 @@ final class Genesis
      */
     public function run(string $root, Message $argument): Maybe
     {
+        $message = Init::root($root, $argument)
+            ->normalize()
+            ->serialize();
+
         return $this
             ->mailboxes
             ->for($this->os, Name::root())
@@ -112,9 +116,8 @@ final class Genesis
                         $this->os,
                         Name::root(),
                     )
-                    ->map(static fn() => $mailbox->address()),
+                    ->flatMap(static fn() => $mailbox->push(Sequence::of($message))),
             )
-            ->flatMap(static fn($address) => $address(Sequence::of(Init::of($root, $argument))))
             ->map($this->loop(...));
     }
 

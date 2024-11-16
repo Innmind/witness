@@ -62,11 +62,12 @@ final class Payload
     public static function denormalize(
         OperatingSystem $os,
         Mailboxes $mailboxes,
+        Address\Name $currentActor,
         mixed $value,
     ): Maybe {
         /** @var Constraint<mixed, string|int|float|bool|self|Address|PointInTime|null> */
         $type = Of::callable(static fn(mixed $value) => Validation::success(
-            Value::denormalize($os, $mailboxes, $value),
+            Value::denormalize($os, $mailboxes, $currentActor, $value),
         ))->and(Is::just());
         $values = Is::list($type)->map(
             static fn($values) => self::values(...$values),
@@ -91,6 +92,7 @@ final class Payload
     public static function deserialize(
         OperatingSystem $os,
         Mailboxes $mailboxes,
+        Address\Name $currentActor,
         Serialized $encoded,
     ): Maybe {
         return Maybe::just($encoded->unwrap())
@@ -98,6 +100,7 @@ final class Payload
             ->flatMap(static fn(mixed $value) => self::denormalize(
                 $os,
                 $mailboxes,
+                $currentActor,
                 $value,
             ));
     }

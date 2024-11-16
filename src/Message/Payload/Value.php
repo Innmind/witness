@@ -59,6 +59,7 @@ final class Value
     public static function denormalize(
         OperatingSystem $os,
         Mailboxes $mailboxes,
+        Name $currentActor,
         mixed $value,
     ): Maybe {
         $validate = Is::string()
@@ -97,7 +98,7 @@ final class Value
                             ))
                             ->and(Is::just())
                             ->and(Instance::of(Mailbox::class)) // for some reason Psalm doesn't understand it's a mailbox for sure
-                            ->map(static fn($mailbox) => $mailbox->address()),
+                            ->map(static fn($mailbox) => $mailbox->address($currentActor)),
                     )
                     ->map(static fn($shape): mixed => $shape['address'])
                     ->and(Instance::of(Address::class)),
@@ -129,6 +130,7 @@ final class Value
                     ->map(static fn($value) => Payload::denormalize(
                         $os,
                         $mailboxes,
+                        $currentActor,
                         $value,
                     ))
                     ->and(Is::just()),

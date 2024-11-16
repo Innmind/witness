@@ -7,6 +7,7 @@ use Innmind\Witness\{
     Actor,
     Actor\Address\Name,
     Message,
+    Message\Tell,
 };
 use Innmind\Immutable\{
     Maybe,
@@ -22,6 +23,7 @@ final class Address
     private function __construct(
         private Name $name,
         private Mailbox $mailbox,
+        private Name $sender,
     ) {
     }
 
@@ -35,18 +37,22 @@ final class Address
      */
     public function __invoke(Sequence $messages): Maybe
     {
-        return $this->mailbox->push($messages->map(
-            static fn($message) => $message->normalize()->serialize(),
-        ));
+        return $this->mailbox->push(
+            $messages
+                ->map(fn($message) => Tell::of($this->sender, $message))
+                ->map(static fn($message) => $message->normalize()->serialize()),
+        );
     }
 
     public static function of(
         Name $name,
         Mailbox $mailbox,
+        Name $sender,
     ): self {
         return new self(
             $name,
             $mailbox,
+            $sender,
         );
     }
 
