@@ -136,7 +136,7 @@ final class Process
             } catch (\Throwable $e) {
                 // todo Should be stop the whole system if the root actor crashes ?
                 if (!\is_null($parent)) {
-                    $message = Message\ChildFailed::new();
+                    $message = Message\ChildFailed::of($e);
                     $this
                         ->mailboxes
                         ->for($os, $parent)
