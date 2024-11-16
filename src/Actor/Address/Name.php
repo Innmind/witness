@@ -34,6 +34,9 @@ final class Name
         return new self(Uuid::uuid4()->toString());
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function of(UuidInterface $uuid): self
     {
         return new self($uuid->toString());
