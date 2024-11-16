@@ -9,7 +9,7 @@ use Innmind\Witness\{
     Message\Tell,
     Message\Payload,
     Signal\PostStop,
-    Signal\PreRestart,
+    Signal\Restart,
     Signal\Terminated,
     Receive\Continuation,
 };
@@ -174,7 +174,7 @@ final class Process
                     }
                 }
 
-                $receive = Receive::signal(new PreRestart);
+                $receive = Receive::signal(new Restart);
                 $continue = true;
             }
         } while ($continue);

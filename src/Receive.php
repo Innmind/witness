@@ -8,7 +8,7 @@ use Innmind\Witness\{
     Receive\Continuation,
     Signal\ChildFailed,
     Signal\PostStop,
-    Signal\PreRestart,
+    Signal\Restart,
     Signal\Terminated,
 };
 
@@ -16,7 +16,7 @@ final class Receive
 {
     /** @var ?array{Message, Address} */
     private ?array $message;
-    private ChildFailed|PostStop|PreRestart|Terminated|null $signal;
+    private ChildFailed|PostStop|Restart|Terminated|null $signal;
     /** @var callable(Continuation): Continuation */
     private $handle;
 
@@ -26,7 +26,7 @@ final class Receive
      */
     private function __construct(
         ?array $message,
-        ChildFailed|PostStop|PreRestart|Terminated|null $signal,
+        ChildFailed|PostStop|Restart|Terminated|null $signal,
         callable $handle,
     ) {
         $this->message = $message;
@@ -52,7 +52,7 @@ final class Receive
         );
     }
 
-    public static function signal(ChildFailed|PostStop|PreRestart|Terminated $signal): self
+    public static function signal(ChildFailed|PostStop|Restart|Terminated $signal): self
     {
         return new self(
             null,
@@ -167,9 +167,9 @@ final class Receive
      *
      * @param callable(Continuation): Continuation $handle
      */
-    public function onPreRestart(callable $handle): self
+    public function onRestart(callable $handle): self
     {
-        if ($this->signal instanceof PreRestart) {
+        if ($this->signal instanceof Restart) {
             return new self($this->message, $this->signal, $handle);
         }
 
