@@ -35,7 +35,9 @@ final class Address
      */
     public function __invoke(Sequence $messages): Maybe
     {
-        return $this->mailbox->push($messages);
+        return $this->mailbox->push($messages->map(
+            static fn($message) => $message->normalize()->serialize(),
+        ));
     }
 
     public static function of(

@@ -7,6 +7,7 @@ use Innmind\Witness\{
     Actor\Address\Name,
     Message\Init,
     Message\Tell,
+    Message\Payload,
     Signal\PostStop,
     Signal\PreRestart,
     Receive\Continuation,
@@ -23,6 +24,7 @@ final class Process
         private Mailboxes $mailboxes,
         private Scheduled $scheduled,
         private Factories $factories,
+        private Denormalize $denormalize,
         private Name $name,
     ) {
     }
@@ -43,6 +45,12 @@ final class Process
 
         $actor = $mailbox
             ->pull()
+            ->flatMap(fn($serialized) => Payload::deserialize(
+                $os,
+                $this->mailboxes,
+                $serialized,
+            ))
+            ->flatMap($this->denormalize)
             ->keep(Instance::of(Init::class))
             ->flatMap(fn($init) => ($this->factories)(
                 $init->actor(),
@@ -72,6 +80,12 @@ final class Process
                 // todo handle pulling signals from children
                 $receive ??= $mailbox
                     ->pull()
+                    ->flatMap(fn($serialized) => Payload::deserialize(
+                        $os,
+                        $this->mailboxes,
+                        $serialized,
+                    ))
+                    ->flatMap($this->denormalize)
                     ->keep(Instance::of(Tell::class))
                     ->flatMap(
                         fn($tell) => $this
@@ -118,9 +132,10 @@ final class Process
         Mailboxes $mailboxes,
         Scheduled $scheduled,
         Factories $factories,
+        Denormalize $denormalize,
     ): callable {
         return static fn(Name $address) => Task::of(
-            new self($mailboxes, $scheduled, $factories, $address),
+            new self($mailboxes, $scheduled, $factories, $denormalize, $address),
         );
     }
 }

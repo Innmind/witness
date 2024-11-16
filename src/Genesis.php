@@ -6,6 +6,7 @@ namespace Innmind\Witness;
 use Innmind\Witness\{
     Actor\Address\Name,
     Message\Init,
+    Message\Tell,
 };
 use Innmind\Mantle\Forerunner;
 use Innmind\OperatingSystem\OperatingSystem;
@@ -100,6 +101,10 @@ final class Genesis
                 $this->scheduled,
                 $this->mailboxes,
                 Factories::of($this->factories),
+                Denormalize::of(
+                    Init::class,
+                    Tell::class,
+                ),
             ),
         );
     }

@@ -16,6 +16,7 @@ final class Supervisor
         private Scheduled $scheduled,
         private Mailboxes $mailboxes,
         private Factories $factories,
+        private Denormalize $denormalize,
     ) {
     }
 
@@ -42,6 +43,7 @@ final class Supervisor
                     $this->mailboxes,
                     $this->scheduled,
                     $this->factories,
+                    $this->denormalize,
                 ))
                 ->toSequence(),
         );
@@ -51,7 +53,8 @@ final class Supervisor
         Scheduled $scheduled,
         Mailboxes $mailboxes,
         Factories $factories,
+        Denormalize $denormalize,
     ): self {
-        return new self($scheduled, $mailboxes, $factories);
+        return new self($scheduled, $mailboxes, $factories, $denormalize);
     }
 }

@@ -3,9 +3,7 @@ declare(strict_types = 1);
 
 namespace Innmind\Witness\Actor;
 
-use Innmind\Witness\{
-    Message,
-};
+use Innmind\Witness\Message\Payload\Serialized;
 use Innmind\Immutable\{
     Maybe,
     Sequence,
@@ -17,14 +15,14 @@ interface Mailbox
     public function address(): Address;
 
     /**
-     * @param Sequence<Message> $messages
+     * @param Sequence<Serialized> $messages
      *
      * @return Maybe<SideEffect>
      */
     public function push(Sequence $messages): Maybe;
 
     /**
-     * @return Maybe<Message>
+     * @return Maybe<Serialized>
      */
     public function pull(): Maybe;
 }
