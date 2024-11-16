@@ -7,12 +7,14 @@ use Innmind\Witness\{
     Message,
     Denormalize,
     Actor,
+    Actor\Address\Name,
 };
 use Innmind\Validation\Is;
 use Innmind\Immutable\{
     Maybe,
     Predicate\Instance,
 };
+use Ramsey\Uuid\Uuid;
 
 /**
  * @psalm-immutable
@@ -26,6 +28,7 @@ final class Init implements Message
      * @param class-string<Actor> $actor
      */
     private function __construct(
+        private ?Name $parent,
         private string $actor,
         private Message $argument,
     ) {
@@ -36,9 +39,19 @@ final class Init implements Message
      *
      * @param class-string<Actor> $actor
      */
-    public static function of(string $actor, Message $argument): self
+    public static function root(string $actor, Message $argument): self
     {
-        return new self($actor, $argument);
+        return new self(null, $actor, $argument);
+    }
+
+    /**
+     * @psalm-pure
+     *
+     * @param class-string<Actor> $actor
+     */
+    public static function of(Name $parent, string $actor, Message $argument): self
+    {
+        return new self($parent, $actor, $argument);
     }
 
     /**
@@ -57,6 +70,18 @@ final class Init implements Message
                         ->get('id')
                         ->filter(static fn($id) => $id === self::KEY),
                     $shape
+                        ->get('parent')
+                        ->keep(
+                            Is::string()
+                                ->or(Is::null())
+                                ->asPredicate(),
+                        )
+                        ->filter(static fn($value) => \is_null($value) || Uuid::isValid($value)) // the root name should never be injected here
+                        ->map(static fn($value) => match ($value) {
+                            null => null,
+                            default => Name::of(Uuid::fromString($value)),
+                        }),
+                    $shape
                         ->get('actor')
                         ->keep(Is::string()->asPredicate()),
                     $shape
@@ -65,12 +90,18 @@ final class Init implements Message
                         ->flatMap($denormalize),
                 )->map(
                     /** @psalm-suppress ArgumentTypeCoercion Due to the actor string not being a class-string */
-                    static fn(string $_, string $actor, Message $argument) => new self(
+                    static fn(string $_, ?Name $parent, string $actor, Message $argument) => new self(
+                        $parent,
                         $actor,
                         $argument,
                     ),
                 ),
             );
+    }
+
+    public function parent(): ?Name
+    {
+        return $this->parent;
     }
 
     /**
@@ -90,6 +121,7 @@ final class Init implements Message
     {
         return Payload::of([
             'id' => self::KEY,
+            'parent' => $this->parent?->toString(),
             'actor' => $this->actor,
             'argument' => $this->argument->normalize(),
         ]);

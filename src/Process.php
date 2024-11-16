@@ -43,7 +43,7 @@ final class Process
             return;
         }
 
-        $actor = $mailbox
+        [$parent, $actor] = $mailbox
             ->pull()
             ->flatMap(fn($serialized) => Payload::deserialize(
                 $os,
@@ -62,9 +62,9 @@ final class Process
                     $this->scheduled,
                     $this->name,
                 ),
-            ))
+            )->map(static fn($actor) => [$init->parent(), $actor]))
             ->match(
-                static fn($actor) => $actor,
+                static fn($init) => $init,
                 static fn() => null,
             );
 

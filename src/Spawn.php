@@ -36,7 +36,7 @@ final class Spawn
      */
     public function __invoke(string $actor, Message $argument): Maybe
     {
-        $message = Init::of($actor, $argument)
+        $message = Init::of($this->spawner, $actor, $argument)
             ->normalize()
             ->serialize();
 
