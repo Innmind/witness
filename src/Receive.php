@@ -142,12 +142,20 @@ final class Receive
 
     /**
      * @psalm-mutation-free
-     * @param callable(Continuation): Continuation $handle
+     * @param callable(): void $handle
      */
     public function onPostStop(callable $handle): self
     {
         if ($this->signal instanceof PostStop) {
-            return new self($this->message, $this->signal, $handle);
+            return new self(
+                $this->message,
+                $this->signal,
+                static function(Continuation $continuation) use ($handle): Continuation {
+                    $handle();
+
+                    return $continuation;
+                },
+            );
         }
 
         return $this;

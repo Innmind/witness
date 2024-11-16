@@ -121,17 +121,11 @@ final class Process
                     continue;
                 }
 
-                [$receive, $continue] = $actor($receive)
+                $continue = $actor($receive)
                     ->handle(Continuation::new())
                     ->match(
-                        static fn() => [null, true],
-                        static fn() => [
-                            match ($continue) {
-                                true => Receive::signal(new PostStop),
-                                false => null, // means previous call already asked to stop, returning null to avoid infinite loop
-                            },
-                            false,
-                        ],
+                        static fn() => true,
+                        static fn() => false,
                     );
             } catch (\Throwable $e) {
                 // todo Should be stop the whole system if the root actor crashes ?
@@ -151,10 +145,28 @@ final class Process
                 $receive = Receive::signal(new PreRestart);
                 $continue = true;
             }
-        } while ($continue || !\is_null($receive));
+        } while ($continue);
 
         // todo find a way to check that all children are terminated before
         // terminating this actor
+
+        try {
+            // In any case the actor can't restart when stopping.
+            $actor(Receive::signal(new PostStop))
+                ->handle(Continuation::new())
+                ->match(
+                    static fn() => null,
+                    static fn() => null,
+                );
+        } catch (\Throwable $e) {
+            // Do not notify the parent the child has failed because the mailbox
+            // may be already deleted by the time it gets the signal. And in any
+            // case it couldn't recover the actor since it will be terminated.
+            // And the parent will get the Terminated signal anyway.
+            // If someone needs to debug any error occuring during the PostStop
+            // signal then it should catch the error inside the
+            // Receive::onPostStop() callable.
+        }
 
         if (\is_null($parent)) {
             // This means this is the root actor. We should return a value to
