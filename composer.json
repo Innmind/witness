@@ -19,7 +19,8 @@
         "innmind/immutable": "~5.10",
         "innmind/operating-system": "^5.2",
         "innmind/mantle": "^2.1",
-        "ramsey/uuid": "^4.7"
+        "ramsey/uuid": "^4.7",
+        "innmind/time-continuum": "^3.4"
     },
     "autoload": {
         "psr-4": {
