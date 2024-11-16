@@ -7,6 +7,7 @@ use Innmind\Witness\Actor\Address;
 
 /**
  * @psalm-immutable
+ * @internal
  */
 final class ChildFailed
 {

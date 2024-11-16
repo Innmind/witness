@@ -7,6 +7,7 @@ use Innmind\Witness\Actor\Address\Name;
 
 /**
  * @psalm-immutable
+ * @internal
  */
 final class Terminated
 {

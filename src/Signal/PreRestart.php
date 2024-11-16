@@ -5,6 +5,7 @@ namespace Innmind\Witness\Signal;
 
 /**
  * @psalm-immutable
+ * @internal
  */
 final class PreRestart
 {
