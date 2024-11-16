@@ -188,7 +188,7 @@ final class Process
 
         // todo force stopping after a grace period in case we never receive
         // enough Terminated signals. This case could happen in case of network
-        // errors.
+        // errors. Or the children are unable to send the signal to their parent.
         while (!$counter->childless()) {
             $receive = $mailbox
                 ->pull()
