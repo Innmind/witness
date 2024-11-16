@@ -1,10 +1,11 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness\Message;
+namespace Innmind\Witness\Message\Parent;
 
 use Innmind\Witness\{
     Message,
+    Message\Payload,
     Denormalize,
 };
 use Innmind\Immutable\{
@@ -16,9 +17,9 @@ use Innmind\Immutable\{
  * @psalm-immutable
  * @internal
  */
-final class ParentFailed implements Message
+final class Failure implements Message
 {
-    private const KEY = 'innmind-witness-signal-parent-failed';
+    private const KEY = 'innmind-witness-signal-parent-failure';
 
     private function __construct(
     ) {

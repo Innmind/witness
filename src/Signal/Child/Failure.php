@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness\Signal;
+namespace Innmind\Witness\Signal\Child;
 
 use Innmind\Witness\Actor\Address;
 
@@ -9,7 +9,7 @@ use Innmind\Witness\Actor\Address;
  * @psalm-immutable
  * @internal
  */
-final class ChildFailed
+final class Failure
 {
     /**
      * @param class-string<\Throwable> $class

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness\Signal;
+namespace Innmind\Witness\Signal\Child;
 
 use Innmind\Witness\Actor\Address\Name;
 
@@ -9,7 +9,7 @@ use Innmind\Witness\Actor\Address\Name;
  * @psalm-immutable
  * @internal
  */
-final class Terminated
+final class Termination
 {
     private function __construct(
         private Name $child,

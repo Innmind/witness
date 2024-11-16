@@ -6,16 +6,15 @@ namespace Innmind\Witness;
 use Innmind\Witness\{
     Actor\Address,
     Receive\Continuation,
-    Signal\ChildFailed,
     Signal\PostStop,
-    Signal\Terminated,
+    Signal\Child,
 };
 
 final class Receive
 {
     /** @var ?array{Message, Address} */
     private ?array $message;
-    private ChildFailed|PostStop|Terminated|null $signal;
+    private Child\Failure|PostStop|Child\Termination|null $signal;
     /** @var callable(Continuation): Continuation */
     private $handle;
 
@@ -25,7 +24,7 @@ final class Receive
      */
     private function __construct(
         ?array $message,
-        ChildFailed|PostStop|Terminated|null $signal,
+        Child\Failure|PostStop|Child\Termination|null $signal,
         callable $handle,
     ) {
         $this->message = $message;
@@ -35,8 +34,8 @@ final class Receive
 
     public static function message(Message $message, Address $sender): self
     {
-        if ($message instanceof Message\ChildFailed) {
-            return self::signal(ChildFailed::of(
+        if ($message instanceof Message\Child\Failure) {
+            return self::signal(Child\Failure::of(
                 $sender,
                 $message->class(),
                 $message->code(),
@@ -51,7 +50,7 @@ final class Receive
         );
     }
 
-    public static function signal(ChildFailed|PostStop|Terminated $signal): self
+    public static function signal(Child\Failure|PostStop|Child\Termination $signal): self
     {
         return new self(
             null,
@@ -97,7 +96,7 @@ final class Receive
      */
     public function onChildFailure(callable $handle): self
     {
-        if ($this->signal instanceof ChildFailed) {
+        if ($this->signal instanceof Child\Failure) {
             $signal = $this->signal;
 
             return new self(
@@ -121,9 +120,9 @@ final class Receive
      *
      * @param callable(Address\Name, Continuation): Continuation $handle
      */
-    public function onChildTerminated(callable $handle): self
+    public function onChildTermination(callable $handle): self
     {
-        if ($this->signal instanceof Terminated) {
+        if ($this->signal instanceof Child\Termination) {
             $signal = $this->signal;
 
             return new self(

@@ -1,10 +1,11 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness\Message;
+namespace Innmind\Witness\Message\Child;
 
 use Innmind\Witness\{
     Message,
+    Message\Payload,
     Denormalize,
 };
 use Innmind\Validation\Is;
@@ -17,9 +18,9 @@ use Innmind\Immutable\{
  * @psalm-immutable
  * @internal
  */
-final class ChildFailed implements Message
+final class Failure implements Message
 {
-    private const KEY = 'innmind-witness-signal-child-failed';
+    private const KEY = 'innmind-witness-signal-child-failure';
 
     /**
      * @param class-string<\Throwable> $class

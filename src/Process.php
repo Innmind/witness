@@ -9,7 +9,7 @@ use Innmind\Witness\{
     Message\Tell,
     Message\Payload,
     Signal\PostStop,
-    Signal\Terminated,
+    Signal\Child,
     Receive\Continuation,
 };
 use Innmind\Mantle\Task;
@@ -126,10 +126,10 @@ final class Process
                 ->keep(Instance::of(Tell::class))
                 ->flatMap(
                     fn($tell) => match (true) {
-                        $tell->message() instanceof Message\ParentFailed => Maybe::just($tell->message()),
-                        $tell->message() instanceof Message\Terminated => Maybe::just($tell->sender())
+                        $tell->message() instanceof Message\Parent\Failure => Maybe::just($tell->message()),
+                        $tell->message() instanceof Message\Child\Termination => Maybe::just($tell->sender())
                             ->map($children->remove(...))
-                            ->map(Terminated::of(...))
+                            ->map(Child\Termination::of(...))
                             ->map(Receive::signal(...)),
                         default => $this
                             ->mailboxes
@@ -156,7 +156,7 @@ final class Process
                 continue;
             }
 
-            if ($receive instanceof Message\ParentFailed) {
+            if ($receive instanceof Message\Parent\Failure) {
                 // When a parent fails we recursively destroy the supervision
                 // tree. It will be up to the parent actor to restart the child
                 // that failed.
@@ -164,7 +164,7 @@ final class Process
                 // Even though the current actor didn't fail we recursilvely
                 // propagate this message to the children in order to gracefully
                 // stop the whole tree.
-                $messages = Sequence::of(Message\ParentFailed::new());
+                $messages = Sequence::of(Message\Parent\Failure::new());
                 $_ = $children->list()->foreach(
                     static fn($child) => $child($messages)->match(
                         static fn() => null,
@@ -186,7 +186,7 @@ final class Process
                 $continue = false;
 
                 if (!\is_null($parent)) {
-                    $message = Message\ChildFailed::of($e);
+                    $message = Message\Child\Failure::of($e);
                     // If the signal is not sent it should mean the parent no
                     // longer exist. And like the comment at the top of this
                     // method explains, the child can't live without its parent
@@ -197,7 +197,7 @@ final class Process
                     );
                 }
 
-                $messages = Sequence::of(Message\ParentFailed::new());
+                $messages = Sequence::of(Message\Parent\Failure::new());
                 // We don't take into account the failure to send the signal to
                 // children as they will be forced destroyed in case they don't
                 // terminate gracefully.
@@ -228,11 +228,11 @@ final class Process
                 ->keep(Instance::of(Tell::class))
                 ->flatMap(
                     static fn($tell) => Maybe::just($tell->message())
-                        ->keep(Instance::of(Message\Terminated::class))
+                        ->keep(Instance::of(Message\Child\Termination::class))
                         ->map(static fn() => $tell->sender()),
                 )
                 ->map($children->remove(...))
-                ->map(Terminated::of(...))
+                ->map(Child\Termination::of(...))
                 ->map(Receive::signal(...))
                 ->match(
                     static fn($receive) => $receive,
@@ -299,7 +299,7 @@ final class Process
             return;
         }
 
-        $message = Message\Terminated::new();
+        $message = Message\Child\Termination::new();
         // If the signal is not sent it should mean the parent no longer exist.
         // At this point there's nothing we can do.
         $parent(Sequence::of($message))->match(
