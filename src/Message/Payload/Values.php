@@ -39,4 +39,15 @@ final class Values
     {
         return $this->values;
     }
+
+    /**
+     * @internal
+     */
+    public function normalize(): array
+    {
+        return $this
+            ->values
+            ->map(Value::normalize(...))
+            ->toList();
+    }
 }

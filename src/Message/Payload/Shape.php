@@ -41,10 +41,40 @@ final class Shape
     }
 
     /**
+     * @psalm-pure
+     * @internal
+     *
+     * @param Map<array-key, string|int|float|bool|Payload|Address|PointInTime|null> $shape
+     */
+    public static function ofMap(Map $shape): self
+    {
+        return new self($shape);
+    }
+
+    /**
      * @return Map<array-key, string|int|float|bool|Payload|Address|PointInTime|null>
      */
     public function unwrap(): Map
     {
         return $this->shape;
+    }
+
+    /**
+     * @internal
+     */
+    public function normalize(): array
+    {
+        $pairs = $this
+            ->shape
+            ->map(static fn($_, $value) => Value::normalize($value))
+            ->toSequence()
+            ->toList();
+        $raw = [];
+
+        foreach ($pairs as $pair) {
+            $raw[$pair->key()] = $pair->value();
+        }
+
+        return $raw;
     }
 }

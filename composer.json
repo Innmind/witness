@@ -21,7 +21,8 @@
         "innmind/mantle": "^2.1",
         "ramsey/uuid": "^4.7",
         "innmind/time-continuum": "^3.4",
-        "innmind/validation": "^1.7"
+        "innmind/validation": "^1.7",
+        "innmind/json": "^1.4"
     },
     "autoload": {
         "psr-4": {
