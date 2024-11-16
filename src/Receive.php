@@ -36,6 +36,10 @@ final class Receive
 
     public static function message(Message $message, Address $sender): self
     {
+        if ($message instanceof Message\Signal) {
+            return self::signal($message->signal($sender));
+        }
+
         return new self(
             [$message, $sender],
             null,

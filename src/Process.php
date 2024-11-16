@@ -15,6 +15,7 @@ use Innmind\Witness\{
 use Innmind\Mantle\Task;
 use Innmind\OperatingSystem\OperatingSystem;
 use Innmind\Immutable\{
+    Sequence,
     Predicate\Instance,
 };
 
@@ -136,6 +137,27 @@ final class Process
                 $continue = true;
             }
         } while ($continue || !\is_null($receive));
+
+        // todo find a way to check that all children are terminated before
+        // terminating this actor
+
+        if (\is_null($parent)) {
+            // This means this is the root actor. We should return a value to
+            // tell the Supervisor it should terminate itself
+            // todo
+            return;
+        }
+
+        $message = Message\Signal::terminated();
+        $this
+            ->mailboxes
+            ->for($os, $parent)
+            ->map(fn($mailbox) => $mailbox->address($this->name))
+            ->flatMap(static fn($address) => $address(Sequence::of($message)))
+            ->match(
+                static fn() => null, // signal sent
+                static fn() => null, // todo what to do in this case ?
+            );
     }
 
     /**
