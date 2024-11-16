@@ -79,7 +79,6 @@ final class Process
 
         do {
             try {
-                // todo handle pulling signals from children
                 $receive ??= $mailbox
                     ->pull()
                     ->flatMap(fn($serialized) => Payload::deserialize(
