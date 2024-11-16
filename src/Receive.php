@@ -142,6 +142,7 @@ final class Receive
 
     /**
      * @psalm-mutation-free
+     *
      * @param callable(): void $handle
      */
     public function onPostStop(callable $handle): self
@@ -163,6 +164,7 @@ final class Receive
 
     /**
      * @psalm-mutation-free
+     *
      * @param callable(Continuation): Continuation $handle
      */
     public function onPreRestart(callable $handle): self
