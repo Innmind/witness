@@ -19,6 +19,11 @@ interface Mailboxes
     /**
      * @return Maybe<Mailbox>
      */
+    public function generate(OperatingSystem $os): Maybe;
+
+    /**
+     * @return Maybe<Mailbox>
+     */
     public function for(OperatingSystem $os, Name $name): Maybe;
 
     /**

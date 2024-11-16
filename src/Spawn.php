@@ -48,7 +48,7 @@ final class Spawn
          */
         return $this
             ->mailboxes
-            ->for($this->os, Name::new())
+            ->generate($this->os)
             ->flatMap(
                 fn($mailbox) => $this
                     ->scheduled
