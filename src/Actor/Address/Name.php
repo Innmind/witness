@@ -42,6 +42,11 @@ final class Name
         return new self($uuid->toString());
     }
 
+    public function equals(self $other): bool
+    {
+        return $this->value === $other->value;
+    }
+
     /**
      * @return non-empty-string
      */

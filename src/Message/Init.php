@@ -99,9 +99,12 @@ final class Init implements Message
             );
     }
 
-    public function parent(): ?Name
+    /**
+     * @return Maybe<Name>
+     */
+    public function parent(): Maybe
     {
-        return $this->parent;
+        return Maybe::of($this->parent);
     }
 
     /**

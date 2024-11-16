@@ -65,11 +65,40 @@ final class Process
                     $this->scheduled,
                     $this->name,
                 ),
-            )->map(static fn($actor) => [$init->parent(), $actor]))
+            )->map(static fn($actor) => [
+                $init
+                    ->parent()
+                    ->flatMap(fn($parent) => $this->mailboxes->for(
+                        $os,
+                        $parent,
+                    ))
+                    ->map(fn($mailbox) => $mailbox->address($this->name))
+                    ->match(
+                        static fn($parent) => $parent,
+                        static fn() => null,
+                    ),
+                $actor,
+            ]))
             ->match(
                 static fn($init) => $init,
                 static fn() => null,
             );
+
+        if (\is_null($parent) && !$this->name->equals(Name::root())) {
+            // This case should not exist as only the root actor should not have
+            // a parent actor. But if this case arise this means that the parent
+            // may no longer exist.
+            // A child can't live without its parent, so we prevent the child
+            // from running.
+            // By deleting its mailbox we make sure the actor can never be run
+            // and no new messages can accumulated for it.
+            $this->mailboxes->delete($this->name)->match(
+                static fn() => null,
+                static fn() => null,
+            );
+
+            return;
+        }
 
         if (\is_null($actor)) {
             // todo send parent failed ?
@@ -131,15 +160,18 @@ final class Process
                 // todo Should be stop the whole system if the root actor crashes ?
                 if (!\is_null($parent)) {
                     $message = Message\ChildFailed::of($e);
-                    $this
-                        ->mailboxes
-                        ->for($os, $parent)
-                        ->map(fn($mailbox) => $mailbox->address($this->name))
-                        ->flatMap(static fn($address) => $address(Sequence::of($message)))
-                        ->match(
-                            static fn() => null, // signal sent
-                            static fn() => null, // todo what to do in this case ?
-                        );
+                    // If the signal is not sent it should mean the parent no
+                    // longer exist. And like the comment at the top of this
+                    // method explains, the child can't live without its parent
+                    // so we stop this child.
+                    $continue = $parent(Sequence::of($message))->match(
+                        static fn() => true,
+                        static fn() => false,
+                    );
+
+                    if (!$continue) {
+                        continue;
+                    }
                 }
 
                 $receive = Receive::signal(new PreRestart);
@@ -181,15 +213,12 @@ final class Process
         }
 
         $message = Message\Terminated::new();
-        $this
-            ->mailboxes
-            ->for($os, $parent)
-            ->map(fn($mailbox) => $mailbox->address($this->name))
-            ->flatMap(static fn($address) => $address(Sequence::of($message)))
-            ->match(
-                static fn() => null, // signal sent
-                static fn() => null, // todo what to do in this case ?
-            );
+        // If the signal is not sent it should mean the parent no longer exist.
+        // At this point there's nothing we can do.
+        $parent(Sequence::of($message))->match(
+            static fn() => null,
+            static fn() => null,
+        );
     }
 
     /**
