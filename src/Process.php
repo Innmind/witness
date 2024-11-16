@@ -127,10 +127,6 @@ final class Process
                             false,
                         ],
                     );
-            } catch (\RuntimeException $e) {
-                // todo use a dedicated class for failing to pull message
-                // todo ?
-                return;
             } catch (\Throwable $e) {
                 // send parent a ChildFailed ?
                 $receive = Receive::signal(new PreRestart);
