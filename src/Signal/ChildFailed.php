@@ -5,6 +5,9 @@ namespace Innmind\Witness\Signal;
 
 use Innmind\Witness\Actor\Address;
 
+/**
+ * @psalm-immutable
+ */
 final class ChildFailed
 {
     private function __construct(
@@ -12,6 +15,9 @@ final class ChildFailed
     ) {
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function of(Address $child): self
     {
         return new self($child);
