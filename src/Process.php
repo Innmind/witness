@@ -81,7 +81,7 @@ final class Process
             ]))
             ->match(
                 static fn($init) => $init,
-                static fn() => null,
+                static fn() => [null, null],
             );
 
         if (\is_null($parent) && !$this->name->equals(Name::root())) {
