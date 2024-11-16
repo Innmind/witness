@@ -114,47 +114,47 @@ final class Process
         $continue = true;
 
         do {
+            $receive ??= $mailbox
+                ->pull()
+                ->flatMap(fn($serialized) => Payload::deserialize(
+                    $os,
+                    $this->mailboxes,
+                    $this->name,
+                    $serialized,
+                ))
+                ->flatMap($this->denormalize)
+                ->keep(Instance::of(Tell::class))
+                ->flatMap(
+                    fn($tell) => match (true) {
+                        $tell->message() instanceof Message\Terminated => Maybe::just(
+                            Receive::signal(Terminated::of($tell->sender())),
+                        )->map($counter->decrement(...)),
+                        default => $this
+                            ->mailboxes
+                            ->for($os, $tell->sender())
+                            ->map(fn($mailbox) => Receive::message(
+                                $tell->message(),
+                                $mailbox->address($this->name),
+                            )),
+                    },
+                )
+                ->match(
+                    static fn($receive) => $receive,
+                    static fn() => null,
+                );
+
+            if (\is_null($receive)) {
+                // We silently ignore messages that failed to be retieved or
+                // deserialized to let the system continue processing.
+                // The alternative would be to crash the process, notify the
+                // supervisor or parent actor to know what to do next. But
+                // this is too much complexity to implement (at least for
+                // now).
+                // This allows the overhaul system to be more efficient.
+                continue;
+            }
+
             try {
-                $receive ??= $mailbox
-                    ->pull()
-                    ->flatMap(fn($serialized) => Payload::deserialize(
-                        $os,
-                        $this->mailboxes,
-                        $this->name,
-                        $serialized,
-                    ))
-                    ->flatMap($this->denormalize)
-                    ->keep(Instance::of(Tell::class))
-                    ->flatMap(
-                        fn($tell) => match (true) {
-                            $tell->message() instanceof Message\Terminated => Maybe::just(
-                                Receive::signal(Terminated::of($tell->sender())),
-                            )->map($counter->decrement(...)),
-                            default => $this
-                                ->mailboxes
-                                ->for($os, $tell->sender())
-                                ->map(fn($mailbox) => Receive::message(
-                                    $tell->message(),
-                                    $mailbox->address($this->name),
-                                )),
-                        },
-                    )
-                    ->match(
-                        static fn($receive) => $receive,
-                        static fn() => null,
-                    );
-
-                if (\is_null($receive)) {
-                    // We silently ignore messages that failed to be retieved or
-                    // deserialized to let the system continue processing.
-                    // The alternative would be to crash the process, notify the
-                    // supervisor or parent actor to know what to do next. But
-                    // this is too much complexity to implement (at least for
-                    // now).
-                    // This allows the overhaul system to be more efficient.
-                    continue;
-                }
-
                 $continue = $actor($receive)
                     ->handle(Continuation::new())
                     ->match(
