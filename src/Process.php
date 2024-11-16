@@ -134,7 +134,20 @@ final class Process
                         ],
                     );
             } catch (\Throwable $e) {
-                // send parent a ChildFailed ?
+                // todo Should be stop the whole system if the root actor crashes ?
+                if (!\is_null($parent)) {
+                    $message = Message\ChildFailed::new();
+                    $this
+                        ->mailboxes
+                        ->for($os, $parent)
+                        ->map(fn($mailbox) => $mailbox->address($this->name))
+                        ->flatMap(static fn($address) => $address(Sequence::of($message)))
+                        ->match(
+                            static fn() => null, // signal sent
+                            static fn() => null, // todo what to do in this case ?
+                        );
+                }
+
                 $receive = Receive::signal(new PreRestart);
                 $continue = true;
             }
