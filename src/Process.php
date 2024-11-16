@@ -65,7 +65,7 @@ final class Process
                     $this->scheduled,
                     $this->name,
                 ),
-            )->map(static fn($actor) => [
+            )->map(fn($actor) => [
                 $init
                     ->parent()
                     ->flatMap(fn($parent) => $this->mailboxes->for(
