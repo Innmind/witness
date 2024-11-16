@@ -9,7 +9,6 @@ use Innmind\Witness\{
     Message\Tell,
     Message\Payload,
     Signal\PostStop,
-    Signal\Recover,
     Signal\Terminated,
     Receive\Continuation,
 };
@@ -127,6 +126,7 @@ final class Process
                 ->keep(Instance::of(Tell::class))
                 ->flatMap(
                     fn($tell) => match (true) {
+                        $tell->message() instanceof Message\ParentFailed => Maybe::just($tell->message()),
                         $tell->message() instanceof Message\Terminated => Maybe::just($tell->sender())
                             ->map($children->remove(...))
                             ->map(Terminated::of(...))
@@ -156,6 +156,25 @@ final class Process
                 continue;
             }
 
+            if ($receive instanceof Message\ParentFailed) {
+                // When a parent fails we recursively destroy the supervision
+                // tree. It will be up to the parent actor to restart the child
+                // that failed.
+                $continue = false;
+                // Even though the current actor didn't fail we recursilvely
+                // propagate this message to the children in order to gracefully
+                // stop the whole tree.
+                $messages = Sequence::of(Message\ParentFailed::new());
+                $_ = $children->list()->foreach(
+                    static fn($child) => $child($messages)->match(
+                        static fn() => null,
+                        static fn() => null,
+                    ),
+                );
+
+                continue;
+            }
+
             try {
                 $continue = $actor($receive)
                     ->handle(Continuation::new())
@@ -164,7 +183,8 @@ final class Process
                         static fn() => false,
                     );
             } catch (\Throwable $e) {
-                // todo Should be stop the whole system if the root actor crashes ?
+                $continue = false;
+
                 if (!\is_null($parent)) {
                     $message = Message\ChildFailed::of($e);
                     // If the signal is not sent it should mean the parent no
@@ -175,14 +195,18 @@ final class Process
                         static fn() => true,
                         static fn() => false,
                     );
-
-                    if (!$continue) {
-                        continue;
-                    }
                 }
 
-                $receive = Receive::signal(Recover::of($e));
-                $continue = true;
+                $messages = Sequence::of(Message\ParentFailed::new());
+                // We don't take into account the failure to send the signal to
+                // children as they will be forced destroyed in case they don't
+                // terminate gracefully.
+                $_ = $children->list()->foreach(
+                    static fn($child) => $child($messages)->match(
+                        static fn() => null,
+                        static fn() => null,
+                    ),
+                );
             }
         } while ($continue);
 

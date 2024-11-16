@@ -8,7 +8,6 @@ use Innmind\Witness\{
     Receive\Continuation,
     Signal\ChildFailed,
     Signal\PostStop,
-    Signal\Recover,
     Signal\Terminated,
 };
 
@@ -16,7 +15,7 @@ final class Receive
 {
     /** @var ?array{Message, Address} */
     private ?array $message;
-    private ChildFailed|PostStop|Recover|Terminated|null $signal;
+    private ChildFailed|PostStop|Terminated|null $signal;
     /** @var callable(Continuation): Continuation */
     private $handle;
 
@@ -26,7 +25,7 @@ final class Receive
      */
     private function __construct(
         ?array $message,
-        ChildFailed|PostStop|Recover|Terminated|null $signal,
+        ChildFailed|PostStop|Terminated|null $signal,
         callable $handle,
     ) {
         $this->message = $message;
@@ -52,7 +51,7 @@ final class Receive
         );
     }
 
-    public static function signal(ChildFailed|PostStop|Recover|Terminated $signal): self
+    public static function signal(ChildFailed|PostStop|Terminated $signal): self
     {
         return new self(
             null,
@@ -156,29 +155,6 @@ final class Receive
 
                     return $continuation;
                 },
-            );
-        }
-
-        return $this;
-    }
-
-    /**
-     * @psalm-mutation-free
-     *
-     * @param callable(\Throwable, Continuation): Continuation $handle
-     */
-    public function recover(callable $handle): self
-    {
-        if ($this->signal instanceof Recover) {
-            $signal = $this->signal;
-
-            return new self(
-                $this->message,
-                $this->signal,
-                static fn(Continuation $continuation) => $handle(
-                    $signal->error(),
-                    $continuation,
-                ),
             );
         }
 
