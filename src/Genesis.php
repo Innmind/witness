@@ -21,12 +21,14 @@ final class Genesis
 {
     /**
      * @param Map<class-string<Actor>, callable(Message, Spawn): Actor> $factories
+     * @param Sequence<class-string<Message>> $messages
      */
     private function __construct(
         private OperatingSystem $os,
         private Mailboxes $mailboxes,
         private Scheduled $scheduled,
         private Map $factories,
+        private Sequence $messages,
     ) {
     }
 
@@ -40,6 +42,7 @@ final class Genesis
             $mailboxes,
             $scheduled,
             Map::of(),
+            Sequence::of(),
         );
     }
 
@@ -60,6 +63,27 @@ final class Genesis
             $this->mailboxes,
             $this->scheduled,
             ($this->factories)($class, $factory),
+            $this->messages,
+        );
+    }
+
+    /**
+     * Messages not being declared here will be silently ignored at runtime.
+     *
+     * @psalm-mutation-free
+     * @no-named-arguments
+     *
+     * @param class-string<Message> $message
+     * @param class-string<Message> $messages
+     */
+    public function handle(string $message, string ...$messages): self
+    {
+        return new self(
+            $this->os,
+            $this->mailboxes,
+            $this->scheduled,
+            $this->factories,
+            $this->messages->append(Sequence::of($message, ...$messages)),
         );
     }
 
@@ -104,6 +128,7 @@ final class Genesis
                 Denormalize::of(
                     Init::class,
                     Tell::class,
+                    ...$this->messages->toList(),
                 ),
             ),
         );
