@@ -281,9 +281,14 @@ final class Process
             }
         }
 
-        // todo delete the mailboxes of the remaining children after the grace
-        // period
-        // $children->list()->map($address->name())->map(mailboxes->delete(...))
+        // Force delete the remaining children that didn't stop gracefully in
+        // the allowed period.
+        $_ = $children
+            ->list()
+            ->map(static fn($address) => $address->name())
+            ->map($this->mailboxes->delete(...))
+            ->flatMap(static fn($deleted) => $deleted->toSequence())
+            ->memoize();
 
         try {
             // In any case the actor can't restart when stopping.
