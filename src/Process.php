@@ -98,8 +98,19 @@ final class Process
                     )
                     ->match(
                         static fn($receive) => $receive,
-                        static fn() => throw new \RuntimeException('Failed to pull a message'),
+                        static fn() => null,
                     );
+
+                if (\is_null($receive)) {
+                    // We silently ignore messages that failed to be retieved or
+                    // deserialized to let the system continue processing.
+                    // The alternative would be to crash the process, notify the
+                    // supervisor or parent actor to know what to do next. But
+                    // this is too much complexity to implement (at least for
+                    // now).
+                    // This allows the overhaul system to be more efficient.
+                    continue;
+                }
 
                 [$receive, $continue] = $actor($receive)
                     ->handle(Continuation::new())
