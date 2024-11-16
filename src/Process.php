@@ -126,11 +126,11 @@ final class Process
             return;
         }
 
-        $receive = null;
+        $error = null;
         $continue = true;
 
         do {
-            $receive ??= $mailbox
+            $receive = $mailbox
                 ->pull()
                 ->flatMap(fn($serialized) => Payload::deserialize(
                     $os,
@@ -176,19 +176,9 @@ final class Process
                 // When a parent fails we recursively destroy the supervision
                 // tree. It will be up to the parent actor to restart the child
                 // that failed.
-                $continue = false;
-                // Even though the current actor didn't fail we recursilvely
-                // propagate this message to the children in order to gracefully
-                // stop the whole tree.
-                $messages = Sequence::of(Message\Parent\Failure::new());
-                $_ = $children->list()->foreach(
-                    static fn($child) => $child($messages)->match(
-                        static fn() => null,
-                        static fn() => null,
-                    ),
-                );
+                $error = $receive;
 
-                continue;
+                break;
             }
 
             try {
@@ -199,32 +189,40 @@ final class Process
                         static fn() => false,
                     );
             } catch (\Throwable $e) {
-                $continue = false;
+                $error = Message\Parent\Failure::new();
 
                 if (!\is_null($parent)) {
                     $message = Message\Child\Failure::of($e);
-                    // If the signal is not sent it should mean the parent no
-                    // longer exist. And like the comment at the top of this
-                    // method explains, the child can't live without its parent
-                    // so we stop this child.
-                    $continue = $parent(Sequence::of($message))->match(
-                        static fn() => true,
-                        static fn() => false,
+                    // If we're unable to send the parent the signal it may mean
+                    // it no longer exist. (A crash for example)
+                    // In such case we can't recover from it.
+                    // But it shouldn't be a problem as this actor and all its
+                    // children will be destroyed anyway.
+                    $_ = $parent(Sequence::of($message))->match(
+                        static fn() => null,
+                        static fn() => null,
                     );
                 }
 
-                $messages = Sequence::of(Message\Parent\Failure::new());
-                // We don't take into account the failure to send the signal to
-                // children as they will be forced destroyed in case they don't
-                // terminate gracefully.
-                $_ = $children->list()->foreach(
-                    static fn($child) => $child($messages)->match(
-                        static fn() => null,
-                        static fn() => null,
-                    ),
-                );
+                break;
             }
         } while ($continue);
+
+        if ($error instanceof Message\Parent\Failure) {
+            // If this actor or its parent failed we propagate the failure to
+            // the whole supervision tree so no actor is left alone. It will be
+            // up to the parent of the first actor that failed to restart the
+            // actor. This way the whole system prunes itself in case of failure.
+            // We don't take into account the failure to send the signal to the
+            // childrent as they will be forced destroyed in case they don't
+            // terminate gracefully.
+            $_ = $children->list()->foreach(
+                static fn($child) => $child(Sequence::of($error))->match(
+                    static fn() => null,
+                    static fn() => null,
+                ),
+            );
+        }
 
         $receiveTerminations = true;
 
