@@ -6,7 +6,6 @@ namespace Innmind\Witness\Message\Payload;
 use Innmind\Witness\{
     Actor\Address,
     Actor\Address\Name,
-    Actor\Mailbox,
     Message\Payload,
     Mailboxes,
 };
@@ -92,13 +91,11 @@ final class Value
                                     }))
                                     ->and(Is::just()),
                             )
-                            ->map(static fn($name) => $mailboxes->for(
+                            ->map(static fn($name) => $mailboxes->address(
                                 $os,
                                 $name,
-                            ))
-                            ->and(Is::just())
-                            ->and(Instance::of(Mailbox::class)) // for some reason Psalm doesn't understand it's a mailbox for sure
-                            ->map(static fn($mailbox) => $mailbox->address($currentActor)),
+                                $currentActor,
+                            )),
                     )
                     ->map(static fn($shape): mixed => $shape['address'])
                     ->and(Instance::of(Address::class)),
