@@ -143,6 +143,8 @@ final class Process
             return;
         }
 
+        // todo destroy mailbox
+
         $message = Message\Signal::terminated();
         $this
             ->mailboxes
