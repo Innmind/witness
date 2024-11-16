@@ -34,7 +34,7 @@ final class Name
         return new self(Uuid::uuid4()->toString());
     }
 
-    public function of(UuidInterface $uuid): self
+    public static function of(UuidInterface $uuid): self
     {
         return new self($uuid->toString());
     }
