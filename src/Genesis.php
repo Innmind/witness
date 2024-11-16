@@ -57,6 +57,9 @@ final class Genesis
      */
     public function actor(string $class, callable $factory): self
     {
+        // todo use attributes on the actor class to declare the messages it
+        // handles so we can automatically read them here ?
+
         /** @psalm-suppress InvalidArgument Forced to lose type precision due to genericity of the Map */
         return new self(
             $this->os,
