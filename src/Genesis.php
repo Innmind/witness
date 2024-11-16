@@ -134,6 +134,9 @@ final class Genesis
                 Denormalize::of(
                     Init::class,
                     Tell::class,
+                    Message\Parent\Failure::class,
+                    Message\Child\Failure::class,
+                    Message\Child\Termination::class,
                     ...$this->messages->toList(),
                 ),
             ),
