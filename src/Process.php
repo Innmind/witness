@@ -163,7 +163,10 @@ final class Process
             return;
         }
 
-        // todo destroy mailbox
+        $this->mailboxes->delete($this->name)->match(
+            static fn() => null, // deleted
+            static fn() => null, // todo what to do in this case ?
+        );
 
         $message = Message\Terminated::new();
         $this

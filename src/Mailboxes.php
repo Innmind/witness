@@ -8,7 +8,10 @@ use Innmind\Witness\{
     Actor\Mailbox,
 };
 use Innmind\OperatingSystem\OperatingSystem;
-use Innmind\Immutable\Maybe;
+use Innmind\Immutable\{
+    Maybe,
+    SideEffect,
+};
 
 interface Mailboxes
 {
@@ -16,4 +19,9 @@ interface Mailboxes
      * @return Maybe<Mailbox>
      */
     public function for(OperatingSystem $os, Name $name): Maybe;
+
+    /**
+     * @return Maybe<SideEffect>
+     */
+    public function delete(Name $name): Maybe;
 }
