@@ -3,6 +3,7 @@ declare(strict_types = 1);
 
 namespace Innmind\Witness;
 
+use Innmind\OperatingSystem\OperatingSystem;
 use Innmind\Immutable\{
     Maybe,
     Map,
@@ -14,7 +15,7 @@ use Innmind\Immutable\{
 final class Factories
 {
     /**
-     * @param Map<class-string<Actor>, callable(Message, Spawn): Actor> $factories
+     * @param Map<class-string<Actor>, callable(OperatingSystem, Message, Spawn): Actor> $factories
      */
     private function __construct(
         private Map $factories,
@@ -32,6 +33,7 @@ final class Factories
      * @return Maybe<T>
      */
     public function __invoke(
+        OperatingSystem $os,
         string $actor,
         Message $argument,
         Spawn $spawn,
@@ -41,13 +43,14 @@ final class Factories
             ->factories
             ->get($actor)
             ->map(static fn($factory) => $factory(
+                $os,
                 $argument,
                 $spawn,
             ));
     }
 
     /**
-     * @param Map<class-string<Actor>, callable(Message, Spawn): Actor> $factories
+     * @param Map<class-string<Actor>, callable(OperatingSystem, Message, Spawn): Actor> $factories
      */
     public static function of(Map $factories): self
     {

@@ -66,6 +66,7 @@ final class Process
             ->keep(Instance::of(Init::class))
             ->flatMap(
                 fn($init) => ($this->factories)(
+                    $os,
                     $init->actor(),
                     $init->argument(),
                     $spawn,

@@ -20,7 +20,7 @@ use Innmind\Immutable\{
 final class Genesis
 {
     /**
-     * @param Map<class-string<Actor>, callable(Message, Spawn): Actor> $factories
+     * @param Map<class-string<Actor>, callable(OperatingSystem, Message, Spawn): Actor> $factories
      * @param Sequence<class-string<Message>> $messages
      */
     private function __construct(
@@ -53,7 +53,7 @@ final class Genesis
      * @template T of Actor<I, A>
      *
      * @param class-string<T> $class
-     * @param callable(A, Spawn): T $factory
+     * @param callable(OperatingSystem, A, Spawn): T $factory
      */
     public function actor(string $class, callable $factory): self
     {
