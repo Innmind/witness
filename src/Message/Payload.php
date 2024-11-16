@@ -3,7 +3,11 @@ declare(strict_types = 1);
 
 namespace Innmind\Witness\Message;
 
-use Innmind\Witness\Actor\Address;
+use Innmind\Witness\{
+    Actor\Address,
+    Message\Payload\Shape,
+    Message\Payload\Values,
+};
 use Innmind\TimeContinuum\PointInTime;
 
 /**
@@ -11,8 +15,9 @@ use Innmind\TimeContinuum\PointInTime;
  */
 final class Payload
 {
-    private function __construct()
-    {
+    private function __construct(
+        private Shape|Values $implementation,
+    ) {
     }
 
     /**
@@ -22,7 +27,7 @@ final class Payload
      */
     public static function of(array $shape): self
     {
-        return new self;
+        return new self(Shape::of($shape));
     }
 
     /**
@@ -31,11 +36,11 @@ final class Payload
      */
     public static function values(string|int|float|bool|self|Address|PointInTime|null ...$values): self
     {
-        return new self;
+        return new self(Values::of(...$values));
     }
 
-    public function unwrap(): array
+    public function unwrap(): Shape|Values
     {
-        return [];
+        return $this->implementation;
     }
 }

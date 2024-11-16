@@ -4,9 +4,17 @@ declare(strict_types = 1);
 namespace Innmind\Witness\Message;
 
 use Innmind\Witness\{
-    Message,
     Actor\Address\Name,
+    Message,
+    Denormalize,
 };
+use Innmind\TimeContinuum\Clock;
+use Innmind\Validation\Is;
+use Innmind\Immutable\{
+    Maybe,
+    Predicate\Instance,
+};
+use Ramsey\Uuid\Uuid;
 
 /**
  * @psalm-immutable
@@ -14,6 +22,8 @@ use Innmind\Witness\{
  */
 final class Tell implements Message
 {
+    private const KEY = 'innmind-witness-tell';
+
     private function __construct(
         private Name $sender,
         private Message $message,
@@ -26,6 +36,49 @@ final class Tell implements Message
     public static function of(Name $sender, Message $message): self
     {
         return new self($sender, $message);
+    }
+
+    /**
+     * @psalm-pure
+     */
+    public static function denormalize(
+        Denormalize $denormalize,
+        Clock $clock,
+        Payload $payload,
+    ): Maybe {
+        return Maybe::just($payload->unwrap())
+            ->keep(Instance::of(Payload\Shape::class))
+            ->map(static fn($shape) => $shape->unwrap())
+            ->flatMap(
+                static fn($shape) => Maybe::all(
+                    $shape
+                        ->get('id')
+                        ->filter(static fn($id) => $id === self::KEY),
+                    $shape
+                        ->get('sender')
+                        ->keep(Is::string()->asPredicate())
+                        ->flatMap(
+                            static fn($string) => Maybe::just($string)
+                                ->filter(Uuid::isValid(...))
+                                ->map(Uuid::fromString(...))
+                                ->map(Name::of(...))
+                                ->otherwise(static fn() => Maybe::of(match ($string) {
+                                    'root' => Name::root(),
+                                    default => null,
+                                })),
+                        ),
+                    $shape
+                        ->get('message')
+                        ->keep(Instance::of(Payload::class))
+                        ->flatMap(static fn($payload) => $denormalize(
+                            $clock,
+                            $payload,
+                        )),
+                )->map(static fn($_, Name $sender, Message $message) => new self(
+                    $sender,
+                    $message,
+                )),
+            );
     }
 
     public function sender(): Name
@@ -41,7 +94,7 @@ final class Tell implements Message
     public function normalize(): Payload
     {
         return Payload::of([
-            'id' => 'innmind-witness-tell',
+            'id' => self::KEY,
             'sender' => $this->sender->toString(),
             'message' => $this->message->normalize(),
         ]);

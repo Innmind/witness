@@ -5,7 +5,14 @@ namespace Innmind\Witness\Message;
 
 use Innmind\Witness\{
     Message,
+    Denormalize,
     Actor,
+};
+use Innmind\TimeContinuum\Clock;
+use Innmind\Validation\Is;
+use Innmind\Immutable\{
+    Maybe,
+    Predicate\Instance,
 };
 
 /**
@@ -14,6 +21,8 @@ use Innmind\Witness\{
  */
 final class Init implements Message
 {
+    private const KEY = 'innmind-witness-actor-init';
+
     /**
      * @param class-string<Actor> $actor
      */
@@ -34,6 +43,42 @@ final class Init implements Message
     }
 
     /**
+     * @psalm-pure
+     */
+    public static function denormalize(
+        Denormalize $denormalize,
+        Clock $clock,
+        Payload $payload,
+    ): Maybe {
+        return Maybe::just($payload->unwrap())
+            ->keep(Instance::of(Payload\Shape::class))
+            ->map(static fn($shape) => $shape->unwrap())
+            ->flatMap(
+                static fn($shape) => Maybe::all(
+                    $shape
+                        ->get('id')
+                        ->filter(static fn($id) => $id === self::KEY),
+                    $shape
+                        ->get('actor')
+                        ->keep(Is::string()->asPredicate()),
+                    $shape
+                        ->get('argument')
+                        ->keep(Instance::of(Payload::class))
+                        ->flatMap(static fn($payload) => $denormalize(
+                            $clock,
+                            $payload,
+                        )),
+                )->map(
+                    /** @psalm-suppress ArgumentTypeCoercion Due to the actor string not being a class-string */
+                    static fn(string $_, string $actor, Message $argument) => new self(
+                        $actor,
+                        $argument,
+                    ),
+                ),
+            );
+    }
+
+    /**
      * @return class-string<Actor>
      */
     public function actor(): string
@@ -49,7 +94,7 @@ final class Init implements Message
     public function normalize(): Payload
     {
         return Payload::of([
-            'id' => 'innmind-witness-actor-init',
+            'id' => self::KEY,
             'actor' => $this->actor,
             'argument' => $this->argument->normalize(),
         ]);
