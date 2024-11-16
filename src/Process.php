@@ -46,6 +46,14 @@ final class Process
             return;
         }
 
+        $spawn = Spawn::of(
+            $os,
+            $this->mailboxes,
+            $this->scheduled,
+            $counter = Spawn\Counter::start(),
+            $this->name,
+        );
+
         [$parent, $actor] = $mailbox
             ->pull()
             ->flatMap(fn($serialized) => Payload::deserialize(
@@ -56,29 +64,26 @@ final class Process
             ))
             ->flatMap($this->denormalize)
             ->keep(Instance::of(Init::class))
-            ->flatMap(fn($init) => ($this->factories)(
-                $init->actor(),
-                $init->argument(),
-                Spawn::of(
-                    $os,
-                    $this->mailboxes,
-                    $this->scheduled,
-                    $this->name,
-                ),
-            )->map(fn($actor) => [
-                $init
-                    ->parent()
-                    ->flatMap(fn($parent) => $this->mailboxes->for(
-                        $os,
-                        $parent,
-                    ))
-                    ->map(fn($mailbox) => $mailbox->address($this->name))
-                    ->match(
-                        static fn($parent) => $parent,
-                        static fn() => null,
-                    ),
-                $actor,
-            ]))
+            ->flatMap(
+                fn($init) => ($this->factories)(
+                    $init->actor(),
+                    $init->argument(),
+                    $spawn,
+                )->map(fn($actor) => [
+                    $init
+                        ->parent()
+                        ->flatMap(fn($parent) => $this->mailboxes->for(
+                            $os,
+                            $parent,
+                        ))
+                        ->map(fn($mailbox) => $mailbox->address($this->name))
+                        ->match(
+                            static fn($parent) => $parent,
+                            static fn() => null,
+                        ),
+                    $actor,
+                ]),
+            )
             ->match(
                 static fn($init) => $init,
                 static fn() => [null, null],
@@ -124,7 +129,7 @@ final class Process
                         fn($tell) => match (true) {
                             $tell->message() instanceof Message\Terminated => Maybe::just(
                                 Receive::signal(Terminated::of($tell->sender())),
-                            ),
+                            )->map($counter->decrement(...)),
                             default => $this
                                 ->mailboxes
                                 ->for($os, $tell->sender())
@@ -179,8 +184,61 @@ final class Process
             }
         } while ($continue);
 
-        // todo find a way to check that all children are terminated before
-        // terminating this actor
+        $receiveTerminations = true;
+
+        // todo force stopping after a grace period in case we never receive
+        // enough Terminated signals. This case could happen in case of network
+        // errors.
+        while (!$counter->childless()) {
+            $receive = $mailbox
+                ->pull()
+                ->flatMap(fn($serialized) => Payload::deserialize(
+                    $os,
+                    $this->mailboxes,
+                    $this->name,
+                    $serialized,
+                ))
+                ->flatMap($this->denormalize)
+                ->keep(Instance::of(Tell::class))
+                ->flatMap(
+                    static fn($tell) => Maybe::just($tell->message())
+                        ->keep(Instance::of(Message\Terminated::class))
+                        ->map(static fn($message) => Receive::signal(
+                            Terminated::of($tell->sender()),
+                        )),
+                )
+                ->match(
+                    static fn($receive) => $receive,
+                    static fn() => null,
+                );
+
+            if (\is_null($receive)) {
+                // Silently discarded any messages received. Only Terminated
+                // signals are allowed when stopping an actor.
+                continue;
+            }
+
+            $counter->decrement(null);
+
+            if (!$receiveTerminations) {
+                // If the actor asked to not continue when receiving a
+                // Terminated signal while stopping we continue to wait for all
+                // children to stop. We simply no longer make the actor aware
+                // of the following signals.
+                continue;
+            }
+
+            try {
+                $receiveTerminations = $actor($receive)
+                    ->handle(Continuation::new())
+                    ->match(
+                        static fn() => true,
+                        static fn() => false,
+                    );
+            } catch (\Throwable $e) {
+                // We don't allow the actor to recover from failures.
+            }
+        }
 
         try {
             // In any case the actor can't restart when stopping.

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 namespace Innmind\Witness;
 
 use Innmind\Witness\{
+    Spawn\Counter,
     Actor\Address,
     Actor\Address\Name,
     Message\Init,
@@ -20,6 +21,7 @@ final class Spawn
         private OperatingSystem $os,
         private Mailboxes $mailboxes,
         private Scheduled $scheduled,
+        private Counter $counter,
         private Name $spawner,
     ) {
     }
@@ -57,16 +59,21 @@ final class Spawn
                         $mailbox->address($this->spawner)->name(),
                     )
                     ->flatMap(static fn() => $mailbox->push(Sequence::of($message)))
+                    ->map(fn() => $this->counter->increment())
                     ->map(fn() => $mailbox->address($this->spawner)),
             );
     }
 
+    /**
+     * @internal
+     */
     public static function of(
         OperatingSystem $os,
         Mailboxes $mailboxes,
         Scheduled $scheduled,
+        Counter $counter,
         Name $spawner,
     ): self {
-        return new self($os, $mailboxes, $scheduled, $spawner);
+        return new self($os, $mailboxes, $scheduled, $counter, $spawner);
     }
 }
