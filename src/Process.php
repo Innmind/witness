@@ -11,6 +11,7 @@ use Innmind\Witness\{
     Signal\PostStop,
     Signal\Child,
     Receive\Continuation,
+    Supervisor\DeadRootActor,
 };
 use Innmind\Mantle\Task;
 use Innmind\OperatingSystem\OperatingSystem;
@@ -31,7 +32,7 @@ final class Process
     ) {
     }
 
-    public function __invoke(OperatingSystem $os): void
+    public function __invoke(OperatingSystem $os): ?DeadRootActor
     {
         $mailbox = $this
             ->mailboxes
@@ -42,7 +43,10 @@ final class Process
             );
 
         if (\is_null($mailbox)) {
-            return;
+            return match ($this->name->equals(Name::root())) {
+                true => DeadRootActor::mailboxNotFound(),
+                false => null,
+            };
         }
 
         $children = Spawn\Children::start();
@@ -103,7 +107,7 @@ final class Process
                 static fn() => null,
             );
 
-            return;
+            return null;
         }
 
         if (\is_null($actor)) {
@@ -122,9 +126,10 @@ final class Process
                 static fn() => null, // todo what to do in this case ?
             );
 
-            // todo when this is the root actor we should return a value to tell
-            // the supervisor to stop.
-            return;
+            return match ($parent) {
+                null => DeadRootActor::failed(),
+                default => null,
+            };
         }
 
         $error = null;
@@ -313,10 +318,10 @@ final class Process
         );
 
         if (\is_null($parent)) {
-            // This means this is the root actor. We should return a value to
-            // tell the Supervisor it should terminate itself
-            // todo
-            return;
+            return match ($error) {
+                null => DeadRootActor::stopped(),
+                default => DeadRootActor::failed(),
+            };
         }
 
         $message = Message\Child\Termination::new();
@@ -326,10 +331,12 @@ final class Process
             static fn() => null,
             static fn() => null,
         );
+
+        return null;
     }
 
     /**
-     * @return callable(Name): Task
+     * @return callable(Name): Task<?DeadRootActor>
      */
     public static function task(
         Mailboxes $mailboxes,
