@@ -57,8 +57,11 @@ final class Genesis
      */
     public function actor(string $class, callable $factory): self
     {
-        // todo use attributes on the actor class to declare the messages it
-        // handles so we can automatically read them here ?
+        // use innmind/reflection ?
+        $refl = new \ReflectionClass($class);
+        $messages = Sequence::of(...$refl->getAttributes(Handles::class))
+            ->map(static fn($attribute) => $attribute->newInstance())
+            ->flatMap(static fn($handles) => $handles->messages());
 
         /** @psalm-suppress InvalidArgument Forced to lose type precision due to genericity of the Map */
         return new self(
@@ -66,7 +69,7 @@ final class Genesis
             $this->mailboxes,
             $this->scheduled,
             ($this->factories)($class, $factory),
-            $this->messages,
+            $this->messages->append($messages),
         );
     }
 
