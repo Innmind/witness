@@ -142,7 +142,7 @@ final class Genesis
                     Message\Parent\Failure::class,
                     Message\Child\Failure::class,
                     Message\Child\Termination::class,
-                    ...$this->messages->toList(),
+                    ...$this->messages->distinct()->toList(),
                 ),
                 $this->terminationGrace,
             ),
