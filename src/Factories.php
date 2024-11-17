@@ -7,6 +7,7 @@ use Innmind\OperatingSystem\OperatingSystem;
 use Innmind\Immutable\{
     Maybe,
     Map,
+    Predicate\Instance,
 };
 
 /**
@@ -42,11 +43,14 @@ final class Factories
         return $this
             ->factories
             ->get($actor)
-            ->map(static fn($factory) => $factory(
-                $os,
-                $argument,
-                $spawn,
-            ));
+            ->map(static function($factory) use ($os, $argument, $spawn) {
+                try {
+                    return $factory($os, $argument, $spawn);
+                } catch (\Throwable $e) {
+                    return;
+                }
+            })
+            ->keep(Instance::of($actor));
     }
 
     /**
