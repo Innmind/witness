@@ -14,7 +14,6 @@ use Innmind\TimeContinuum\{
     Period,
     Earth\ElapsedPeriod,
 };
-use Innmind\TimeContinuum\Earth\Period\Second;
 use Innmind\Stream\{
     Readable,
     Writable,
