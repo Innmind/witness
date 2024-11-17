@@ -64,12 +64,7 @@ final class Process
 
         [$parent, $actor] = $mailbox
             ->pull()
-            ->flatMap(fn($serialized) => Payload::deserialize(
-                $os,
-                $this->adapter->mailboxes(),
-                $this->name,
-                $serialized,
-            ))
+            ->flatMap($this->deserialize($os))
             ->flatMap($this->denormalize)
             ->keep(Instance::of(Init::class))
             ->flatMap(
@@ -142,12 +137,7 @@ final class Process
         do {
             $receive = $mailbox
                 ->pull()
-                ->flatMap(fn($serialized) => Payload::deserialize(
-                    $os,
-                    $this->adapter->mailboxes(),
-                    $this->name,
-                    $serialized,
-                ))
+                ->flatMap($this->deserialize($os))
                 ->flatMap($this->denormalize)
                 ->keep(Instance::of(Tell::class))
                 ->flatMap(
@@ -252,12 +242,7 @@ final class Process
         ) {
             $receive = $mailbox
                 ->pull($this->terminationGrace)
-                ->flatMap(fn($serialized) => Payload::deserialize(
-                    $os,
-                    $this->adapter->mailboxes(),
-                    $this->name,
-                    $serialized,
-                ))
+                ->flatMap($this->deserialize($os))
                 ->flatMap($this->denormalize)
                 ->keep(Instance::of(Tell::class))
                 ->flatMap(
@@ -366,6 +351,19 @@ final class Process
                 $address,
                 $terminationGrace,
             ),
+        );
+    }
+
+    /**
+     * @return callable(Payload\Serialized): Maybe<Payload>
+     */
+    private function deserialize(OperatingSystem $os): callable
+    {
+        return fn(Payload\Serialized $serialized) => Payload::deserialize(
+            $os,
+            $this->adapter->mailboxes(),
+            $this->name,
+            $serialized,
         );
     }
 }
