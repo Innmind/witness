@@ -18,7 +18,7 @@ use Innmind\Immutable\{
     SideEffect,
 };
 
-final class Genesis
+final class System
 {
     /**
      * @param Map<class-string<Actor>, callable(OperatingSystem, ?Message, Spawn): Actor> $factories

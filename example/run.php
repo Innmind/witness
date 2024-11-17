@@ -4,7 +4,7 @@ declare(strict_types = 1);
 require __DIR__.'/../vendor/autoload.php';
 
 use Innmind\Witness\{
-    Genesis,
+    System,
     Adapter\InMemory,
     Actor,
     Handles,
@@ -43,7 +43,7 @@ final class Side implements Actor
     }
 }
 
-Genesis::of(
+System::of(
     Factory::build(),
     InMemory::new(),
 )
