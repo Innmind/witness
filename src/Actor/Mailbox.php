@@ -4,6 +4,7 @@ declare(strict_types = 1);
 namespace Innmind\Witness\Actor;
 
 use Innmind\Witness\Message\Payload\Serialized;
+use Innmind\TimeContinuum\Period;
 use Innmind\Immutable\{
     Maybe,
     Sequence,
@@ -25,7 +26,9 @@ interface Mailbox
     public function push(Sequence $messages): Maybe;
 
     /**
+     * @param ?Period $max The max period to wait for a message
+     *
      * @return Maybe<Serialized>
      */
-    public function pull(): Maybe;
+    public function pull(?Period $max = null): Maybe;
 }

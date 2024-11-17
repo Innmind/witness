@@ -251,7 +251,7 @@ final class Process
                 ->longerThan($terminationGrace)
         ) {
             $receive = $mailbox
-                ->pull()
+                ->pull($this->terminationGrace)
                 ->flatMap(fn($serialized) => Payload::deserialize(
                     $os,
                     $this->mailboxes,
