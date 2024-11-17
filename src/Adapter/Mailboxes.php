@@ -17,6 +17,13 @@ use Innmind\Immutable\{
 interface Mailboxes
 {
     /**
+     * Create the root mailbox
+     *
+     * @return Maybe<Mailbox>
+     */
+    public function root(OperatingSystem $os): Maybe;
+
+    /**
      * @return Maybe<Mailbox>
      */
     public function generate(OperatingSystem $os): Maybe;

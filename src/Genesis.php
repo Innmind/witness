@@ -113,7 +113,7 @@ final class Genesis
         return $this
             ->adapter
             ->mailboxes()
-            ->for($this->os, Name::root())
+            ->root($this->os)
             ->flatMap(
                 fn($mailbox) => $this
                     ->adapter
