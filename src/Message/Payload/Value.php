@@ -7,7 +7,7 @@ use Innmind\Witness\{
     Actor\Address,
     Actor\Address\Name,
     Message\Payload,
-    Mailboxes,
+    Adapter\Mailboxes,
 };
 use Innmind\OperatingSystem\OperatingSystem;
 use Innmind\TimeContinuum\PointInTime;

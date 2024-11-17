@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness;
+namespace Innmind\Witness\Adapter;
 
 use Innmind\Witness\{
     Actor\Address,

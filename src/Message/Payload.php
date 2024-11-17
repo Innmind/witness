@@ -9,7 +9,7 @@ use Innmind\Witness\{
     Message\Payload\Shape,
     Message\Payload\Values,
     Message\Payload\Value,
-    Mailboxes,
+    Adapter\Mailboxes,
 };
 use Innmind\OperatingSystem\OperatingSystem;
 use Innmind\TimeContinuum\PointInTime;
