@@ -8,7 +8,12 @@ use Innmind\Witness\{
     Actor\Address\Name,
 };
 use Innmind\OperatingSystem\OperatingSystem;
+use Innmind\Stream\{
+    Readable,
+    Writable,
+};
 use Innmind\Immutable\{
+    Str,
     Maybe,
     Sequence,
     SideEffect,
@@ -21,6 +26,8 @@ final class Scheduled implements ScheduledInterface
      */
     private function __construct(
         private Sequence $actors,
+        private Writable $send,
+        private Readable $receive,
         private bool $valid,
     ) {
     }
@@ -30,7 +37,22 @@ final class Scheduled implements ScheduledInterface
      */
     public static function new(): self
     {
-        return new self(Sequence::of(), true);
+        $pairs = @\stream_socket_pair(
+            \STREAM_PF_UNIX,
+            \STREAM_SOCK_STREAM,
+            \STREAM_IPPROTO_IP,
+        );
+
+        if ($pairs === false) {
+            throw new \RuntimeException('Unable to create a pair of sockets to notify scheduled actors');
+        }
+
+        return new self(
+            Sequence::of(),
+            Writable\Stream::of($pairs[0]),
+            Readable\Stream::of($pairs[1]),
+            true,
+        );
     }
 
     public function push(OperatingSystem $os, Name $address): Maybe
@@ -40,8 +62,21 @@ final class Scheduled implements ScheduledInterface
             return Maybe::nothing();
         }
 
-        // todo pair of sockets
         $this->actors = ($this->actors)($address);
+        $watch = $os
+            ->sockets()
+            ->watch()
+            ->forWrite($this->send);
+        $_ = $watch()
+            ->toSequence()
+            ->flatMap(static fn($ready) => $ready->toWrite()->unsorted())
+            ->flatMap(
+                static fn($send) => $send
+                    ->write(Str::of('.'))
+                    ->maybe()
+                    ->toSequence(),
+            )
+            ->memoize();
 
         return Maybe::just(new SideEffect);
     }
@@ -53,11 +88,21 @@ final class Scheduled implements ScheduledInterface
             return Maybe::nothing();
         }
 
-        // todo pair of sockets
-        $first = $this->actors->first();
-        $this->actors = $this->actors->drop(1);
+        $watch = $os
+            ->sockets()
+            ->watch()
+            ->forRead($this->receive);
 
-        return $first;
+        return $watch()
+            ->toSequence()
+            ->flatMap(static fn($ready) => $ready->toRead()->unsorted())
+            ->first()
+            ->flatMap(fn() => $this->actors->first())
+            ->map(function($actor) {
+                $this->actors = $this->actors->drop(1);
+
+                return $actor;
+            });
     }
 
     /**
@@ -66,6 +111,8 @@ final class Scheduled implements ScheduledInterface
     public function terminate(): void
     {
         $this->actors = $this->actors->clear();
+        $this->send->close()->memoize();
+        $this->receive->close()->memoize();
         $this->valid = false;
     }
 }

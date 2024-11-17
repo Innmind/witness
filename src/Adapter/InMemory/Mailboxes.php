@@ -43,13 +43,15 @@ final class Mailboxes implements MailboxesInterface
         }
 
         $name = Name::root();
-        $mailbox = Mailbox::of($os, $name);
-        $this->mailboxes = ($this->mailboxes)(
-            $name->toString(),
-            $mailbox,
-        );
 
-        return Maybe::just($mailbox);
+        return Mailbox::of($os, $name)->map(function($mailbox) use ($name) {
+            $this->mailboxes = ($this->mailboxes)(
+                $name->toString(),
+                $mailbox,
+            );
+
+            return $mailbox;
+        });
     }
 
     public function generate(OperatingSystem $os): Maybe
@@ -60,13 +62,15 @@ final class Mailboxes implements MailboxesInterface
         }
 
         $name = Name::new();
-        $mailbox = Mailbox::of($os, $name);
-        $this->mailboxes = ($this->mailboxes)(
-            $name->toString(),
-            $mailbox,
-        );
 
-        return Maybe::just($mailbox);
+        return Mailbox::of($os, $name)->map(function($mailbox) use ($name) {
+            $this->mailboxes = ($this->mailboxes)(
+                $name->toString(),
+                $mailbox,
+            );
+
+            return $mailbox;
+        });
     }
 
     public function for(OperatingSystem $os, Name $name): Maybe
