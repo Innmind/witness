@@ -76,8 +76,8 @@ final class Mailbox implements MailboxInterface
         // todo wait ping on the local pair of sockets if no message already in
         // the queue to avoid infinite polling
 
-        foreach ($this->messages as $message) {
-            return Maybe::just($message);
+        if (!$this->messages->isEmpty()) {
+            return Maybe::just($this->messages->dequeue());
         }
 
         /** @var Maybe<Serialized> */
