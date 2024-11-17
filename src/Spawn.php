@@ -52,6 +52,11 @@ final class Spawn
             ->mailboxes()
             ->generate($this->os)
             ->flatMap(
+                static fn($mailbox) => $mailbox
+                    ->push(Sequence::of($message))
+                    ->map(static fn() => $mailbox),
+            )
+            ->flatMap(
                 fn($mailbox) => $this
                     ->adapter
                     ->scheduled()
@@ -59,7 +64,6 @@ final class Spawn
                         $this->os,
                         $mailbox->address($this->spawner)->name(),
                     )
-                    ->flatMap(static fn() => $mailbox->push(Sequence::of($message)))
                     ->map(fn() => $mailbox->address($this->spawner))
                     ->map($this->children->add(...)),
             );
