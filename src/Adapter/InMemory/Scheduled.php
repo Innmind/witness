@@ -46,9 +46,6 @@ final class Scheduled implements ScheduledInterface
         return Maybe::just(new SideEffect);
     }
 
-    /**
-     * @return Maybe<Name>
-     */
     public function pull(OperatingSystem $os): Maybe
     {
         if (!$this->valid) {
