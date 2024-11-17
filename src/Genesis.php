@@ -26,8 +26,7 @@ final class Genesis
      */
     private function __construct(
         private OperatingSystem $os,
-        private Mailboxes $mailboxes,
-        private Scheduled $scheduled,
+        private Adapter $adapter,
         private Map $factories,
         private Sequence $messages,
         private ?Period $terminationGrace,
@@ -36,14 +35,12 @@ final class Genesis
 
     public static function of(
         OperatingSystem $os,
-        Mailboxes $mailboxes,
-        Scheduled $scheduled,
+        Adapter $adapter,
         ?Period $terminationGrace = null,
     ): self {
         return new self(
             $os,
-            $mailboxes,
-            $scheduled,
+            $adapter,
             Map::of(),
             Sequence::of(),
             $terminationGrace,
@@ -70,8 +67,7 @@ final class Genesis
         /** @psalm-suppress InvalidArgument Forced to lose type precision due to genericity of the Map */
         return new self(
             $this->os,
-            $this->mailboxes,
-            $this->scheduled,
+            $this->adapter,
             ($this->factories)($class, $factory),
             $this->messages->append($messages),
             $this->terminationGrace,
@@ -91,8 +87,7 @@ final class Genesis
     {
         return new self(
             $this->os,
-            $this->mailboxes,
-            $this->scheduled,
+            $this->adapter,
             $this->factories,
             $this->messages->append(Sequence::of($message, ...$messages)),
             $this->terminationGrace,
@@ -116,11 +111,13 @@ final class Genesis
             ->serialize();
 
         return $this
-            ->mailboxes
+            ->adapter
+            ->mailboxes()
             ->for($this->os, Name::root())
             ->flatMap(
                 fn($mailbox) => $this
-                    ->scheduled
+                    ->adapter
+                    ->scheduled()
                     ->push(
                         $this->os,
                         Name::root(),
@@ -137,8 +134,7 @@ final class Genesis
         return $loop(
             new SideEffect,
             Supervisor::of(
-                $this->scheduled,
-                $this->mailboxes,
+                $this->adapter,
                 Factories::of($this->factories),
                 Denormalize::of(
                     Init::class,

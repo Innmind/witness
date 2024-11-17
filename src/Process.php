@@ -28,8 +28,7 @@ use Innmind\Immutable\{
 final class Process
 {
     private function __construct(
-        private Mailboxes $mailboxes,
-        private Scheduled $scheduled,
+        private Adapter $adapter,
         private Factories $factories,
         private Denormalize $denormalize,
         private Name $name,
@@ -40,7 +39,8 @@ final class Process
     public function __invoke(OperatingSystem $os): ?DeadRootActor
     {
         $mailbox = $this
-            ->mailboxes
+            ->adapter
+            ->mailboxes()
             ->for($os, $this->name)
             ->match(
                 static fn($mailbox) => $mailbox,
@@ -57,8 +57,7 @@ final class Process
         $children = Spawn\Children::start();
         $spawn = Spawn::of(
             $os,
-            $this->mailboxes,
-            $this->scheduled,
+            $this->adapter,
             $children,
             $this->name,
         );
@@ -67,7 +66,7 @@ final class Process
             ->pull()
             ->flatMap(fn($serialized) => Payload::deserialize(
                 $os,
-                $this->mailboxes,
+                $this->adapter->mailboxes(),
                 $this->name,
                 $serialized,
             ))
@@ -82,7 +81,7 @@ final class Process
                 )->map(fn($actor) => [
                     $init
                         ->parent()
-                        ->flatMap(fn($parent) => $this->mailboxes->for(
+                        ->flatMap(fn($parent) => $this->adapter->mailboxes()->for(
                             $os,
                             $parent,
                         ))
@@ -107,7 +106,7 @@ final class Process
             // from running.
             // By deleting its mailbox we make sure the actor can never be run
             // and no new messages can accumulated for it.
-            $this->mailboxes->delete($this->name)->match(
+            $this->adapter->mailboxes()->delete($this->name)->match(
                 static fn() => null,
                 static fn() => null,
             );
@@ -126,7 +125,7 @@ final class Process
                 );
             }
 
-            $this->mailboxes->delete($this->name)->match(
+            $this->adapter->mailboxes()->delete($this->name)->match(
                 static fn() => null,
                 static fn() => null, // todo what to do in this case ?
             );
@@ -145,7 +144,7 @@ final class Process
                 ->pull()
                 ->flatMap(fn($serialized) => Payload::deserialize(
                     $os,
-                    $this->mailboxes,
+                    $this->adapter->mailboxes(),
                     $this->name,
                     $serialized,
                 ))
@@ -159,7 +158,8 @@ final class Process
                             ->map(Child\Termination::of(...))
                             ->map(Receive::signal(...)),
                         default => $this
-                            ->mailboxes
+                            ->adapter
+                            ->mailboxes()
                             ->for($os, $tell->sender())
                             ->map(fn($mailbox) => Receive::message(
                                 $tell->message(),
@@ -254,7 +254,7 @@ final class Process
                 ->pull($this->terminationGrace)
                 ->flatMap(fn($serialized) => Payload::deserialize(
                     $os,
-                    $this->mailboxes,
+                    $this->adapter->mailboxes(),
                     $this->name,
                     $serialized,
                 ))
@@ -304,7 +304,7 @@ final class Process
         $_ = $children
             ->list()
             ->map(static fn($address) => $address->name())
-            ->map($this->mailboxes->delete(...))
+            ->map($this->adapter->mailboxes()->delete(...))
             ->flatMap(static fn($deleted) => $deleted->toSequence())
             ->memoize();
 
@@ -326,7 +326,7 @@ final class Process
             // Receive::onPostStop() callable.
         }
 
-        $this->mailboxes->delete($this->name)->match(
+        $this->adapter->mailboxes()->delete($this->name)->match(
             static fn() => null, // deleted
             static fn() => null, // todo what to do in this case ?
         );
@@ -353,16 +353,14 @@ final class Process
      * @return callable(Name): Task<?DeadRootActor>
      */
     public static function task(
-        Mailboxes $mailboxes,
-        Scheduled $scheduled,
+        Adapter $adapter,
         Factories $factories,
         Denormalize $denormalize,
         Period $terminationGrace,
     ): callable {
         return static fn(Name $address) => Task::of(
             new self(
-                $mailboxes,
-                $scheduled,
+                $adapter,
                 $factories,
                 $denormalize,
                 $address,

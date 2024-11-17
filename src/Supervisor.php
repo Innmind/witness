@@ -22,8 +22,7 @@ use Innmind\Immutable\{
 final class Supervisor
 {
     public function __construct(
-        private Scheduled $scheduled,
-        private Mailboxes $mailboxes,
+        private Adapter $adapter,
         private Factories $factories,
         private Denormalize $denormalize,
         private Period $terminationGrace,
@@ -43,11 +42,11 @@ final class Supervisor
 
         return $continuation->launch(
             $this
-                ->scheduled
+                ->adapter
+                ->scheduled()
                 ->pull($os)
                 ->map(Process::task(
-                    $this->mailboxes,
-                    $this->scheduled,
+                    $this->adapter,
                     $this->factories,
                     $this->denormalize,
                     $this->terminationGrace,
@@ -60,15 +59,13 @@ final class Supervisor
      * @internal
      */
     public static function of(
-        Scheduled $scheduled,
-        Mailboxes $mailboxes,
+        Adapter $adapter,
         Factories $factories,
         Denormalize $denormalize,
         ?Period $terminationGrace,
     ): self {
         return new self(
-            $scheduled,
-            $mailboxes,
+            $adapter,
             $factories,
             $denormalize,
             $terminationGrace ?? Hour::of(1),

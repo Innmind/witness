@@ -19,8 +19,7 @@ final class Spawn
 {
     private function __construct(
         private OperatingSystem $os,
-        private Mailboxes $mailboxes,
-        private Scheduled $scheduled,
+        private Adapter $adapter,
         private Children $children,
         private Name $spawner,
     ) {
@@ -49,11 +48,13 @@ final class Spawn
          * @var Maybe<Address<T>>
          */
         return $this
-            ->mailboxes
+            ->adapter
+            ->mailboxes()
             ->generate($this->os)
             ->flatMap(
                 fn($mailbox) => $this
-                    ->scheduled
+                    ->adapter
+                    ->scheduled()
                     ->push(
                         $this->os,
                         $mailbox->address($this->spawner)->name(),
@@ -69,11 +70,10 @@ final class Spawn
      */
     public static function of(
         OperatingSystem $os,
-        Mailboxes $mailboxes,
-        Scheduled $scheduled,
+        Adapter $adapter,
         Children $children,
         Name $spawner,
     ): self {
-        return new self($os, $mailboxes, $scheduled, $children, $spawner);
+        return new self($os, $adapter, $children, $spawner);
     }
 }
