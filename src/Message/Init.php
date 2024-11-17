@@ -76,9 +76,10 @@ final class Init implements Message
                                 ->or(Is::null())
                                 ->asPredicate(),
                         )
-                        ->filter(static fn($value) => \is_null($value) || Uuid::isValid($value)) // the root name should never be injected here
+                        ->filter(static fn($value) => \is_null($value) || Uuid::isValid($value) || $value === 'root')
                         ->map(static fn($value) => match ($value) {
                             null => null,
+                            'root' => Name::root(),
                             default => Name::of(Uuid::fromString($value)),
                         }),
                     $shape
