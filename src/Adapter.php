@@ -7,9 +7,19 @@ use Innmind\Witness\Adapter\{
     Mailboxes,
     Scheduled,
 };
+use Innmind\OperatingSystem\OperatingSystem;
+use Innmind\Immutable\{
+    Maybe,
+    SideEffect,
+};
 
 interface Adapter
 {
     public function mailboxes(): Mailboxes;
     public function scheduled(): Scheduled;
+
+    /**
+     * @return Maybe<SideEffect>
+     */
+    public function terminate(OperatingSystem $os): Maybe;
 }

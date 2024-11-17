@@ -36,7 +36,11 @@ final class Supervisor
         Sequence $results,
     ): Continuation {
         if ($results->any(Instance::of(DeadRootActor::class))) {
-            // todo cleanup the scheduled actors
+            $this->adapter->terminate($os)->match(
+                static fn() => null,
+                static fn() => null, // todo what to do in this case ?
+            );
+
             return $continuation->terminate();
         }
 
