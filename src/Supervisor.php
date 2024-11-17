@@ -16,6 +16,9 @@ use Innmind\Immutable\{
     Predicate\Instance,
 };
 
+/**
+ * @internal
+ */
 final class Supervisor
 {
     public function __construct(
@@ -53,6 +56,9 @@ final class Supervisor
         );
     }
 
+    /**
+     * @internal
+     */
     public static function of(
         Scheduled $scheduled,
         Mailboxes $mailboxes,
