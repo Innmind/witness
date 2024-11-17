@@ -4,8 +4,12 @@ declare(strict_types = 1);
 namespace Innmind\Witness;
 
 use Innmind\Witness\Supervisor\DeadRootActor;
-use Innmind\OperatingSystem\OperatingSystem;
 use Innmind\Mantle\Source\Continuation;
+use Innmind\OperatingSystem\OperatingSystem;
+use Innmind\TimeContinuum\{
+    Period,
+    Earth\Period\Hour,
+};
 use Innmind\Immutable\{
     Sequence,
     SideEffect,
@@ -19,6 +23,7 @@ final class Supervisor
         private Mailboxes $mailboxes,
         private Factories $factories,
         private Denormalize $denormalize,
+        private Period $terminationGrace,
     ) {
     }
 
@@ -42,6 +47,7 @@ final class Supervisor
                     $this->scheduled,
                     $this->factories,
                     $this->denormalize,
+                    $this->terminationGrace,
                 ))
                 ->toSequence(),
         );
@@ -52,7 +58,14 @@ final class Supervisor
         Mailboxes $mailboxes,
         Factories $factories,
         Denormalize $denormalize,
+        ?Period $terminationGrace,
     ): self {
-        return new self($scheduled, $mailboxes, $factories, $denormalize);
+        return new self(
+            $scheduled,
+            $mailboxes,
+            $factories,
+            $denormalize,
+            $terminationGrace ?? Hour::of(1),
+        );
     }
 }

@@ -15,6 +15,10 @@ use Innmind\Witness\{
 };
 use Innmind\Mantle\Task;
 use Innmind\OperatingSystem\OperatingSystem;
+use Innmind\TimeContinuum\{
+    Period,
+    Earth\ElapsedPeriod,
+};
 use Innmind\Immutable\{
     Maybe,
     Sequence,
@@ -29,6 +33,7 @@ final class Process
         private Factories $factories,
         private Denormalize $denormalize,
         private Name $name,
+        private Period $terminationGrace,
     ) {
     }
 
@@ -231,11 +236,20 @@ final class Process
         }
 
         $receiveTerminations = true;
+        $terminationsWaitingStarted = $os->clock()->now();
+        $terminationGrace = ElapsedPeriod::ofPeriod($this->terminationGrace);
 
         // todo force stopping after a grace period in case we never receive
         // enough Terminated signals. This case could happen in case of network
         // errors. Or the children are unable to send the signal to their parent.
-        while (!$children->childless()) {
+        while (
+            !$children->childless() &&
+            !$os
+                ->clock()
+                ->now()
+                ->elapsedSince($terminationsWaitingStarted)
+                ->longerThan($terminationGrace)
+        ) {
             $receive = $mailbox
                 ->pull()
                 ->flatMap(fn($serialized) => Payload::deserialize(
@@ -343,9 +357,17 @@ final class Process
         Scheduled $scheduled,
         Factories $factories,
         Denormalize $denormalize,
+        Period $terminationGrace,
     ): callable {
         return static fn(Name $address) => Task::of(
-            new self($mailboxes, $scheduled, $factories, $denormalize, $address),
+            new self(
+                $mailboxes,
+                $scheduled,
+                $factories,
+                $denormalize,
+                $address,
+                $terminationGrace,
+            ),
         );
     }
 }

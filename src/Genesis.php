@@ -10,6 +10,7 @@ use Innmind\Witness\{
 };
 use Innmind\Mantle\Forerunner;
 use Innmind\OperatingSystem\OperatingSystem;
+use Innmind\TimeContinuum\Period;
 use Innmind\Immutable\{
     Maybe,
     Map,
@@ -29,6 +30,7 @@ final class Genesis
         private Scheduled $scheduled,
         private Map $factories,
         private Sequence $messages,
+        private ?Period $terminationGrace,
     ) {
     }
 
@@ -36,6 +38,7 @@ final class Genesis
         OperatingSystem $os,
         Mailboxes $mailboxes,
         Scheduled $scheduled,
+        ?Period $terminationGrace = null,
     ): self {
         return new self(
             $os,
@@ -43,6 +46,7 @@ final class Genesis
             $scheduled,
             Map::of(),
             Sequence::of(),
+            $terminationGrace,
         );
     }
 
@@ -70,6 +74,7 @@ final class Genesis
             $this->scheduled,
             ($this->factories)($class, $factory),
             $this->messages->append($messages),
+            $this->terminationGrace,
         );
     }
 
@@ -90,6 +95,7 @@ final class Genesis
             $this->scheduled,
             $this->factories,
             $this->messages->append(Sequence::of($message, ...$messages)),
+            $this->terminationGrace,
         );
     }
 
@@ -142,6 +148,7 @@ final class Genesis
                     Message\Child\Termination::class,
                     ...$this->messages->toList(),
                 ),
+                $this->terminationGrace,
             ),
         );
     }
