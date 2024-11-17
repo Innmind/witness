@@ -5,12 +5,15 @@ namespace Innmind\Witness\Adapter;
 
 use Innmind\Witness\Actor\Address\Name;
 use Innmind\OperatingSystem\OperatingSystem;
-use Innmind\Immutable\Maybe;
+use Innmind\Immutable\{
+    Maybe,
+    SideEffect,
+};
 
 interface Scheduled
 {
     /**
-     * @return Maybe<Name>
+     * @return Maybe<SideEffect>
      */
     public function push(OperatingSystem $os, Name $address): Maybe;
 

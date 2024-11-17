@@ -11,6 +11,7 @@ use Innmind\OperatingSystem\OperatingSystem;
 use Innmind\Immutable\{
     Maybe,
     Sequence,
+    SideEffect,
 };
 
 final class Scheduled implements ScheduledInterface
@@ -32,20 +33,17 @@ final class Scheduled implements ScheduledInterface
         return new self(Sequence::of(), true);
     }
 
-    /**
-     * @return Maybe<Name>
-     */
     public function push(OperatingSystem $os, Name $address): Maybe
     {
         if (!$this->valid) {
-            /** @var Maybe<Name> */
+            /** @var Maybe<SideEffect> */
             return Maybe::nothing();
         }
 
         // todo pair of sockets
         $this->actors = ($this->actors)($address);
 
-        return Maybe::just($address);
+        return Maybe::just(new SideEffect);
     }
 
     /**
