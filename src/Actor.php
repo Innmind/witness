@@ -5,7 +5,7 @@ namespace Innmind\Witness;
 
 /**
  * @template M of Message
- * @template A of Message
+ * @template A of ?Message
  */
 interface Actor
 {

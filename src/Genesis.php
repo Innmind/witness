@@ -21,7 +21,7 @@ use Innmind\Immutable\{
 final class Genesis
 {
     /**
-     * @param Map<class-string<Actor>, callable(OperatingSystem, Message, Spawn): Actor> $factories
+     * @param Map<class-string<Actor>, callable(OperatingSystem, ?Message, Spawn): Actor> $factories
      * @param Sequence<class-string<Message>> $messages
      */
     private function __construct(
@@ -50,7 +50,7 @@ final class Genesis
     /**
      * @psalm-mutation-free
      * @template I of Message
-     * @template A of Message
+     * @template A of ?Message
      * @template T of Actor<I, A>
      *
      * @param class-string<T> $class
@@ -96,7 +96,7 @@ final class Genesis
 
     /**
      * @template I of Message
-     * @template A of Message
+     * @template A of ?Message
      * @template T of Actor<I, A>
      *
      * @param class-string<T> $root
@@ -104,7 +104,7 @@ final class Genesis
      *
      * @return Maybe<SideEffect>
      */
-    public function run(string $root, Message $argument): Maybe
+    public function run(string $root, ?Message $argument = null): Maybe
     {
         $message = Init::root($root, $argument)
             ->normalize()

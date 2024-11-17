@@ -27,7 +27,7 @@ final class Spawn
 
     /**
      * @template I of Message
-     * @template A of Message
+     * @template A of ?Message
      * @template T of Actor<I, A>
      *
      * @param class-string<T> $actor
@@ -35,7 +35,7 @@ final class Spawn
      *
      * @return Maybe<Address<T>>
      */
-    public function __invoke(string $actor, Message $argument): Maybe
+    public function __invoke(string $actor, ?Message $argument = null): Maybe
     {
         $message = Init::of($this->spawner, $actor, $argument)
             ->normalize()

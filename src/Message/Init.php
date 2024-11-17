@@ -30,7 +30,7 @@ final class Init implements Message
     private function __construct(
         private ?Name $parent,
         private string $actor,
-        private Message $argument,
+        private ?Message $argument,
     ) {
     }
 
@@ -39,7 +39,7 @@ final class Init implements Message
      *
      * @param class-string<Actor> $actor
      */
-    public static function root(string $actor, Message $argument): self
+    public static function root(string $actor, ?Message $argument): self
     {
         return new self(null, $actor, $argument);
     }
@@ -49,7 +49,7 @@ final class Init implements Message
      *
      * @param class-string<Actor> $actor
      */
-    public static function of(Name $parent, string $actor, Message $argument): self
+    public static function of(Name $parent, string $actor, ?Message $argument): self
     {
         return new self($parent, $actor, $argument);
     }
@@ -86,11 +86,16 @@ final class Init implements Message
                         ->keep(Is::string()->asPredicate()),
                     $shape
                         ->get('argument')
-                        ->keep(Instance::of(Payload::class))
-                        ->flatMap($denormalize),
+                        ->keep(Instance::of(Payload::class)->or(
+                            Is::null()->asPredicate(),
+                        ))
+                        ->flatMap(static fn($argument) => match ($argument) {
+                            null => Maybe::just(null),
+                            default => $denormalize($argument)
+                        }),
                 )->map(
                     /** @psalm-suppress ArgumentTypeCoercion Due to the actor string not being a class-string */
-                    static fn(string $_, ?Name $parent, string $actor, Message $argument) => new self(
+                    static fn(string $_, ?Name $parent, string $actor, ?Message $argument) => new self(
                         $parent,
                         $actor,
                         $argument,
@@ -115,7 +120,7 @@ final class Init implements Message
         return $this->actor;
     }
 
-    public function argument(): Message
+    public function argument(): ?Message
     {
         return $this->argument;
     }
@@ -126,7 +131,7 @@ final class Init implements Message
             'id' => self::KEY,
             'parent' => $this->parent?->toString(),
             'actor' => $this->actor,
-            'argument' => $this->argument->normalize(),
+            'argument' => $this->argument?->normalize(),
         ]);
     }
 }

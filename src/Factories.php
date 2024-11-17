@@ -16,7 +16,7 @@ use Innmind\Immutable\{
 final class Factories
 {
     /**
-     * @param Map<class-string<Actor>, callable(OperatingSystem, Message, Spawn): Actor> $factories
+     * @param Map<class-string<Actor>, callable(OperatingSystem, ?Message, Spawn): Actor> $factories
      */
     private function __construct(
         private Map $factories,
@@ -25,7 +25,7 @@ final class Factories
 
     /**
      * @template M of Message
-     * @template A of Message
+     * @template A of ?Message
      * @template T of Actor<M, A>
      *
      * @param class-string<T> $actor
@@ -36,7 +36,7 @@ final class Factories
     public function __invoke(
         OperatingSystem $os,
         string $actor,
-        Message $argument,
+        ?Message $argument,
         Spawn $spawn,
     ): Maybe {
         /** @var Maybe<T> */
@@ -54,7 +54,7 @@ final class Factories
     }
 
     /**
-     * @param Map<class-string<Actor>, callable(OperatingSystem, Message, Spawn): Actor> $factories
+     * @param Map<class-string<Actor>, callable(OperatingSystem, ?Message, Spawn): Actor> $factories
      */
     public static function of(Map $factories): self
     {
