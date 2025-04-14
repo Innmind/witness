@@ -1,39 +1,37 @@
 {
     "name": "innmind/witness",
     "type": "library",
-    "description": "",
-    "keywords": [],
-    "homepage": "http://github.com/innmind/witness",
+    "description": "Actor Model implementation",
+    "keywords": ["actor", "model", "distributed", "system"],
+    "homepage": "http://github.com/Innmind/witness",
     "license": "MIT",
     "authors": [
         {
             "name": "Baptiste Langlade",
-            "email": "langlade.baptiste@gmail.com"
+            "email": "baptiste.langlade@hey.com"
         }
     ],
     "support": {
-        "issues": "http://github.com/innmind/witness/issues"
+        "issues": "http://github.com/Innmind/witness/issues"
     },
     "require": {
-        "php": "~8.0",
-        "innmind/immutable": "^3.11"
+        "php": "~8.2",
+        "innmind/immutable": "~5.10",
+        "innmind/operating-system": "^5.2",
+        "innmind/mantle": "^2.1",
+        "ramsey/uuid": "^4.7",
+        "innmind/time-continuum": "^3.4",
+        "innmind/validation": "^1.7",
+        "innmind/json": "^1.4"
     },
     "autoload": {
         "psr-4": {
             "Innmind\\Witness\\": "src/"
         }
     },
-    "autoload-dev": {
-        "psr-4": {
-            "Tests\\Innmind\\Witness\\": "tests/",
-            "Example\\": "example/"
-        }
-    },
     "require-dev": {
-        "phpunit/phpunit": "~9.0",
-        "vimeo/psalm": "~4.1",
-        "innmind/black-box": "~4.10",
-        "innmind/coding-standard": "~1.0",
-        "innmind/cli": "^2.3"
+        "vimeo/psalm": "~5.6",
+        "innmind/black-box": "^5.5.1",
+        "innmind/coding-standard": "~2.0"
     }
 }

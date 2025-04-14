@@ -1,1 +1,7 @@
-/tests export-ignore
+/.gitattributes export-ignore
+/.gitignore export-ignore
+/blackbox.php export-ignore
+/proofs export-ignore
+/.php-cs-fixer.dist.php export-ignore
+/Makefile export-ignore
+/psalm.xml export-ignore

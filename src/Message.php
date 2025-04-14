@@ -3,20 +3,22 @@ declare(strict_types = 1);
 
 namespace Innmind\Witness;
 
-use Innmind\Witness\Actor\Mailbox\Address;
+use Innmind\Witness\Message\Payload;
 use Innmind\Immutable\Maybe;
 
 /**
- * @psalm-type Primitive = int|float|string|bool
- * @psalm-type Value = Primitive|Address
- * @psalm-type Collection = list<Value>|array<string, Value>
- * @psalm-type T = Collection|Value
  * @psalm-immutable
  */
 interface Message
 {
     /**
-     * @return Maybe<T>
+     * @psalm-pure
+     *
+     * @return Maybe<self>
      */
-    public function get(string $key): Maybe;
+    public static function denormalize(
+        Denormalize $denormalize,
+        Payload $payload,
+    ): Maybe;
+    public function normalize(): Payload;
 }

@@ -3,32 +3,32 @@ declare(strict_types = 1);
 
 namespace Innmind\Witness\Actor;
 
-use Innmind\Witness\{
-    Message,
-    Actor\Mailbox\Address,
-    Actor\Mailbox\Consume,
+use Innmind\Witness\Message\Payload\Serialized;
+use Innmind\TimeContinuum\Period;
+use Innmind\Immutable\{
+    Maybe,
+    Sequence,
+    SideEffect,
 };
-use Innmind\Immutable\Maybe;
 
-/**
- * @internal
- */
 interface Mailbox
 {
-    /**
-     * @return Address<Message>
-     */
-    public function address(): Address;
+    public function address(Address\Name $sender): Address;
 
     /**
-     * @return Maybe<self> Whether the mailbox still exists after the execution or not
-     */
-    public function consume(Consume $continue): Maybe;
-
-    /**
-     * Stop the actor associate with this mailbox
+     * Trying to push to a no longer existent mailbox should return a SideEffect
+     * as the sender can't know if the address it has is still valid or not.
      *
-     * Doesn't mean it will be stopped imediately
+     * @param Sequence<Serialized> $messages
+     *
+     * @return Maybe<SideEffect>
      */
-    public function stop(): void;
+    public function push(Sequence $messages): Maybe;
+
+    /**
+     * @param ?Period $max The max period to wait for a message
+     *
+     * @return Maybe<Serialized>
+     */
+    public function pull(?Period $max = null): Maybe;
 }
