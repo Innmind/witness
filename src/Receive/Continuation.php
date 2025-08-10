@@ -3,13 +3,20 @@ declare(strict_types = 1);
 
 namespace Innmind\Actors\Receive;
 
+use Innmind\Actors\Message;
+use Innmind\Immutable\Sequence;
+
 /**
  * @psalm-immutable
  */
 final class Continuation
 {
+    /**
+     * @param Sequence<Message> $messages
+     */
     private function __construct(
         private bool $continue,
+        private Sequence $messages,
     ) {
     }
 
@@ -19,17 +26,20 @@ final class Continuation
      */
     public static function new(): self
     {
-        return new self(true);
+        return new self(true, Sequence::of());
     }
 
-    public function continue(): self
+    /**
+     * @param ?Sequence<Message> $messages
+     */
+    public function continue(?Sequence $messages = null): self
     {
-        return new self(true);
+        return new self(true, $messages ?? Sequence::of());
     }
 
     public function stop(): self
     {
-        return new self(false);
+        return new self(false, Sequence::of());
     }
 
     /**
@@ -37,7 +47,7 @@ final class Continuation
      * @template S
      * @internal
      *
-     * @param callable(): C $continue
+     * @param callable(Sequence<Message>): C $continue
      * @param callable(): S $stop
      *
      * @return C|S
@@ -46,7 +56,7 @@ final class Continuation
     {
         /** @psalm-suppress ImpureFunctionCall */
         return match ($this->continue) {
-            true => $continue(),
+            true => $continue($this->messages),
             false => $stop(),
         };
     }

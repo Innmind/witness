@@ -183,12 +183,20 @@ final class Process
             }
 
             try {
-                $continue = $actor($receive)
+                [$continue, $messages] = $actor($receive)
                     ->handle(Continuation::new())
                     ->match(
-                        static fn() => true,
-                        static fn() => false,
+                        static fn($messages) => [true, $messages],
+                        static fn() => [false, null],
                     );
+
+                if ($messages) {
+                    $mailbox->push(
+                        $messages
+                            ->map(fn($message) => Tell::of($this->name, $message))
+                            ->map(static fn($message) => $message->normalize()->serialize()),
+                    );
+                }
             } catch (\Throwable $e) {
                 $error = Message\Parent\Failure::new();
 
