@@ -20,7 +20,7 @@ use Innmind\Immutable\{
  */
 final class Failure implements Message
 {
-    private const KEY = 'innmind-witness-signal-child-failure';
+    private const KEY = 'innmind-actors-signal-child-failure';
 
     /**
      * @param class-string<\Throwable> $class

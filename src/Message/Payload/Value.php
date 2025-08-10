@@ -28,8 +28,8 @@ use Ramsey\Uuid\Uuid;
  */
 final class Value
 {
-    private const ADDRESS = 'innmind-witness-address';
-    private const POINT_IN_TIME = 'innmind-witness-point-in-time';
+    private const ADDRESS = 'innmind-actors-address';
+    private const POINT_IN_TIME = 'innmind-actors-point-in-time';
 
     /**
      * @psalm-pure

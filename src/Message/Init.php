@@ -22,7 +22,7 @@ use Ramsey\Uuid\Uuid;
  */
 final class Init implements Message
 {
-    private const KEY = 'innmind-witness-actor-init';
+    private const KEY = 'innmind-actors-actor-init';
 
     /**
      * @param class-string<Actor> $actor

@@ -19,7 +19,7 @@ use Innmind\Immutable\{
  */
 final class Termination implements Message
 {
-    private const KEY = 'innmind-witness-signal-child-termination';
+    private const KEY = 'innmind-actors-signal-child-termination';
 
     private function __construct(
     ) {

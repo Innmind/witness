@@ -21,7 +21,7 @@ use Ramsey\Uuid\Uuid;
  */
 final class Tell implements Message
 {
-    private const KEY = 'innmind-witness-tell';
+    private const KEY = 'innmind-actors-tell';
 
     private function __construct(
         private Name $sender,

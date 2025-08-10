@@ -19,7 +19,7 @@ use Innmind\Immutable\{
  */
 final class Str implements Message
 {
-    private const KEY = 'innmind-witness-message-str';
+    private const KEY = 'innmind-actors-message-str';
 
     private function __construct(
         private string $message,
