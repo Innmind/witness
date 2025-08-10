@@ -1,5 +1,5 @@
-site_name: Innmind/witness
-repo_name: Innmind/witness
+site_name: Innmind/actors
+repo_name: Innmind/actors
 
 nav:
   - Getting Started: README.md
@@ -86,6 +86,6 @@ plugins:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/Innmind/witness
+      link: https://github.com/Innmind/actors
     - icon: fontawesome/brands/x-twitter
       link: https://twitter.com/Baptouuuu

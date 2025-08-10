@@ -1,9 +1,9 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness;
+namespace Innmind\Actors;
 
-use Innmind\Witness\Adapter\{
+use Innmind\Actors\Adapter\{
     Mailboxes,
     Scheduled,
 };

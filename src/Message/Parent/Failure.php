@@ -1,9 +1,9 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness\Message\Parent;
+namespace Innmind\Actors\Message\Parent;
 
-use Innmind\Witness\{
+use Innmind\Actors\{
     Message,
     Message\Payload,
     Denormalize,

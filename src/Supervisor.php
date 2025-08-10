@@ -1,9 +1,9 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness;
+namespace Innmind\Actors;
 
-use Innmind\Witness\Supervisor\DeadRootActor;
+use Innmind\Actors\Supervisor\DeadRootActor;
 use Innmind\Mantle\Source\Continuation;
 use Innmind\OperatingSystem\OperatingSystem;
 use Innmind\TimeContinuum\{

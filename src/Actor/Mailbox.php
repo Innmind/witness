@@ -1,9 +1,9 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness\Actor;
+namespace Innmind\Actors\Actor;
 
-use Innmind\Witness\Message\Payload\Serialized;
+use Innmind\Actors\Message\Payload\Serialized;
 use Innmind\TimeContinuum\Period;
 use Innmind\Immutable\{
     Maybe,

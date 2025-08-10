@@ -1,9 +1,9 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness\Spawn;
+namespace Innmind\Actors\Spawn;
 
-use Innmind\Witness\{
+use Innmind\Actors\{
     Actor\Address,
     Actor\Address\Name,
 };

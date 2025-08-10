@@ -1,9 +1,9 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness\Adapter;
+namespace Innmind\Actors\Adapter;
 
-use Innmind\Witness\Actor\Address\Name;
+use Innmind\Actors\Actor\Address\Name;
 use Innmind\OperatingSystem\OperatingSystem;
 use Innmind\Immutable\{
     Maybe,

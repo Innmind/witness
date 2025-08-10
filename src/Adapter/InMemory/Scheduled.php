@@ -1,9 +1,9 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness\Adapter\InMemory;
+namespace Innmind\Actors\Adapter\InMemory;
 
-use Innmind\Witness\{
+use Innmind\Actors\{
     Adapter\Scheduled as ScheduledInterface,
     Actor\Address\Name,
 };

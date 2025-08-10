@@ -1,9 +1,9 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness\Message;
+namespace Innmind\Actors\Message;
 
-use Innmind\Witness\{
+use Innmind\Actors\{
     Actor\Address,
     Message\Payload\Serialized,
     Message\Payload\Shape,

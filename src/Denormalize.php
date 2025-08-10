@@ -1,9 +1,9 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness;
+namespace Innmind\Actors;
 
-use Innmind\Witness\Message\Payload;
+use Innmind\Actors\Message\Payload;
 use Innmind\Immutable\Maybe;
 
 final class Denormalize

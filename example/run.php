@@ -3,7 +3,7 @@ declare(strict_types = 1);
 
 require __DIR__.'/../vendor/autoload.php';
 
-use Innmind\Witness\{
+use Innmind\Actors\{
     System,
     Adapter\InMemory,
     Actor,

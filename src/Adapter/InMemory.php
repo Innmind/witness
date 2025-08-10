@@ -1,9 +1,9 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness\Adapter;
+namespace Innmind\Actors\Adapter;
 
-use Innmind\Witness\{
+use Innmind\Actors\{
     Adapter,
 };
 use Innmind\OperatingSystem\OperatingSystem;

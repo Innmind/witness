@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness\Message\Payload;
+namespace Innmind\Actors\Message\Payload;
 
 use Innmind\TimeContinuum\Format;
 

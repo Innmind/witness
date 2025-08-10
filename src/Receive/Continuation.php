@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness\Receive;
+namespace Innmind\Actors\Receive;
 
 /**
  * @psalm-immutable

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness\Signal;
+namespace Innmind\Actors\Signal;
 
 /**
  * @psalm-immutable

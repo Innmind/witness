@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness\Actor\Address;
+namespace Innmind\Actors\Actor\Address;
 
 use Ramsey\Uuid\{
     UuidInterface,
