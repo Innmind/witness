@@ -74,6 +74,7 @@ final class Mailbox implements MailboxInterface
         ));
     }
 
+    #[\Override]
     public function address(Name $sender): Address
     {
         return Address::of(
@@ -83,6 +84,7 @@ final class Mailbox implements MailboxInterface
         );
     }
 
+    #[\Override]
     public function push(Sequence $messages): Maybe
     {
         if (!$this->valid) {
@@ -110,6 +112,7 @@ final class Mailbox implements MailboxInterface
         return Maybe::just(new SideEffect);
     }
 
+    #[\Override]
     public function pull(?Period $max = null): Maybe
     {
         if (!$this->valid) {

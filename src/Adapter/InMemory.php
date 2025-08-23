@@ -28,16 +28,19 @@ final class InMemory implements Adapter
         return new self;
     }
 
+    #[\Override]
     public function mailboxes(): Mailboxes
     {
         return $this->mailboxes;
     }
 
+    #[\Override]
     public function scheduled(): Scheduled
     {
         return $this->scheduled;
     }
 
+    #[\Override]
     public function terminate(OperatingSystem $os): Maybe
     {
         $this->mailboxes->terminate();

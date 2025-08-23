@@ -35,6 +35,7 @@ final class Mailboxes implements MailboxesInterface
         return new self(Map::of(), true);
     }
 
+    #[\Override]
     public function root(OperatingSystem $os): Maybe
     {
         if (!$this->valid) {
@@ -54,6 +55,7 @@ final class Mailboxes implements MailboxesInterface
         });
     }
 
+    #[\Override]
     public function generate(OperatingSystem $os): Maybe
     {
         if (!$this->valid) {
@@ -73,6 +75,7 @@ final class Mailboxes implements MailboxesInterface
         });
     }
 
+    #[\Override]
     public function for(OperatingSystem $os, Name $name): Maybe
     {
         if (!$this->valid) {
@@ -89,6 +92,7 @@ final class Mailboxes implements MailboxesInterface
             ->map(static fn($mailbox) => $mailbox->swap($os));
     }
 
+    #[\Override]
     public function address(
         OperatingSystem $os,
         Name $name,
@@ -103,6 +107,7 @@ final class Mailboxes implements MailboxesInterface
             );
     }
 
+    #[\Override]
     public function delete(Name $name): Maybe
     {
         if (!$this->valid) {

@@ -55,6 +55,7 @@ final class Scheduled implements ScheduledInterface
         );
     }
 
+    #[\Override]
     public function push(OperatingSystem $os, Name $address): Maybe
     {
         if (!$this->valid) {
@@ -81,6 +82,7 @@ final class Scheduled implements ScheduledInterface
         return Maybe::just(new SideEffect);
     }
 
+    #[\Override]
     public function pull(OperatingSystem $os): Maybe
     {
         if (!$this->valid) {

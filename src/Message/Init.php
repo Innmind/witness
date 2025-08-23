@@ -57,6 +57,7 @@ final class Init implements Message
     /**
      * @psalm-pure
      */
+    #[\Override]
     public static function denormalize(
         Denormalize $denormalize,
         Payload $payload,
@@ -126,6 +127,7 @@ final class Init implements Message
         return $this->argument;
     }
 
+    #[\Override]
     public function normalize(): Payload
     {
         return Payload::of([

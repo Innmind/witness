@@ -40,6 +40,7 @@ final class Tell implements Message
     /**
      * @psalm-pure
      */
+    #[\Override]
     public static function denormalize(
         Denormalize $denormalize,
         Payload $payload,
@@ -86,6 +87,7 @@ final class Tell implements Message
         return $this->message;
     }
 
+    #[\Override]
     public function normalize(): Payload
     {
         return Payload::of([

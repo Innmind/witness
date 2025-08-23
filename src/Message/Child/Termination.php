@@ -36,6 +36,7 @@ final class Termination implements Message
     /**
      * @psalm-pure
      */
+    #[\Override]
     public static function denormalize(
         Denormalize $denormalize,
         Payload $payload,
@@ -48,6 +49,7 @@ final class Termination implements Message
             ->map(static fn() => new self);
     }
 
+    #[\Override]
     public function normalize(): Payload
     {
         return Payload::of([
