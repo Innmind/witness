@@ -11,6 +11,7 @@ use Innmind\Actors\{
     Handles,
     Message,
     Message\Payload,
+    Message\Str,
     Receive,
     Receive\Continuation,
     Spawn,
@@ -20,51 +21,27 @@ use Innmind\OperatingSystem\{
     Factory,
     OperatingSystem,
 };
+use Innmind\HttpTransport\FollowRedirections;
+use Innmind\Http\{
+    Request,
+    Method,
+    ProtocolVersion,
+    Headers,
+    Header\Header,
+    Header\Value\Value,
+};
 use Innmind\TimeContinuum\Earth\Period\Second;
+use Innmind\Url\Url as BaseUrl;
+use Innmind\UrlResolver\UrlResolver;
+use Innmind\Html\Element\A;
+use Innmind\Html\Reader\Reader;
+use Innmind\Xml\Node;
 use Innmind\Validation\Is;
 use Innmind\Immutable\{
     Maybe,
     Predicate\Instance,
     Sequence,
 };
-
-enum Tld implements Message {
-    case fr;
-    case org;
-
-    /**
-     * @psalm-pure
-     */
-    public static function denormalize(
-        Denormalize $denormalize,
-        Payload $payload,
-    ): Maybe {
-        return Maybe::just($payload->unwrap())
-            ->keep(Instance::of(Payload\Shape::class))
-            ->map(static fn($shape) => $shape->unwrap())
-            ->flatMap(
-                static fn($shape) => Maybe::all(
-                    $shape
-                        ->get('id')
-                        ->filter(static fn($id) => $id === self::class),
-                    $shape
-                        ->get('name')
-                        ->keep(Is::string()->asPredicate()),
-                )->map(static fn($_, string $name) => match ($name) {
-                    'fr' => self::fr,
-                    'org' => self::org,
-                }),
-            );
-    }
-
-    public function normalize(): Payload
-    {
-        return Payload::of([
-            'id' => self::class,
-            'name' => $this->name,
-        ]);
-    }
-}
 
 /**
  * @psalm-immutable
@@ -118,11 +95,15 @@ final class Url implements Message
             'value' => $this->value,
         ]);
     }
+}
 
-    public function is(Tld $tld): bool
-    {
-        return \str_contains($this->value, '.'.$tld->name);
+function gather(Node $node): Sequence
+{
+    if ($node instanceof A) {
+        return Sequence::of($node->href());
     }
+
+    return $node->children()->flatMap(gather(...));
 }
 
 /**
@@ -130,46 +111,47 @@ final class Url implements Message
  */
 function crawl(OperatingSystem $os, Url $url): Sequence
 {
-    $second = \rand(1, 5);
-    \printf("Sleeping for %s seconds\n", $second);
-    $os->process()->halt(Second::of($second));
-    \printf("Done sleeping\n");
+    $resolve = UrlResolver::of('http', 'https');
+    \printf(
+        "Crawling %s\n",
+        $url->value(),
+    );
+    $http = FollowRedirections::of($os->remote()->http());
 
-    $urls = match ($url->value()) {
-        'https://wikipedia.org' => ['https://en.wikipedia.org/', 'https://wikipedia.fr/'],
-        'https://en.wikipedia.org/' => ['https://en.wikipedia.org/wiki/PHP', 'https://example.org/'],
-        'https://wikipedia.fr/' => ['https://wikipedia.fr/wiki/PHP', 'https://gouv.fr'],
-        default => [],
-    };
+    $urls = $http(Request::of(
+        BaseUrl::of($url->value()),
+        Method::get,
+        ProtocolVersion::v11,
+        Headers::of(
+            new Header('User-Agent', new Value('innmind/actor demo')),
+        ),
+    ))
+        ->map(static fn($success) => $success->response()->body())
+        ->maybe()
+        ->flatMap(Reader::default())
+        ->toSequence()
+        ->flatMap(gather(...))
+        ->map(static fn($dest) => $resolve(
+            BaseUrl::of($url->value()),
+            $dest,
+        ))
+        ->map(static fn($url) => Url::of($url->toString()));
+    \printf(
+        "Done %s\n",
+        $url->value(),
+    );
 
-    return Sequence::of(...$urls)->map(Url::of(...));
+    return $urls;
 }
 
 final class Crawler implements Actor
 {
-    private Address $fr;
-    private Address $org;
+    /** @var array<string, Address> */
+    private array $children;
 
-    public function __construct(Spawn $spawn, Url $url)
+    public function __construct(private Spawn $spawn, Url $url)
     {
-        $this->fr = $spawn(ChildCrawler::class, Tld::fr)
-            ->memoize()
-            ->match(
-                static fn($address) => $address,
-                static fn() => throw new \Exception,
-            );
-        $this->org = $spawn(ChildCrawler::class, Tld::org)
-            ->memoize()
-            ->match(
-                static fn($address) => $address,
-                static fn() => throw new \Exception,
-            );
-
-        if ($url->is(Tld::fr)) {
-            ($this->fr)(Sequence::of($url))->memoize();
-        } else if ($url->is(Tld::org)) {
-            ($this->org)(Sequence::of($url))->memoize();
-        }
+        $this->forward($url);
     }
 
     public function __invoke(Receive $receive): Receive
@@ -177,20 +159,30 @@ final class Crawler implements Actor
         return $receive->on(
             Url::class,
             function(Url $url, Address $sender, Continuation $continuation) {
-                \printf(
-                    "Root actor handling %s\n",
-                    $url->value(),
-                );
-
-                if ($url->is(Tld::fr)) {
-                    ($this->fr)(Sequence::of($url))->memoize();
-                } else if ($url->is(Tld::org)) {
-                    ($this->org)(Sequence::of($url))->memoize();
-                }
+                $this->forward($url);
 
                 return $continuation->continue();
             },
         );
+    }
+
+    private function forward(Url $url): void
+    {
+        $host = BaseUrl::of($url->value())
+            ->authority()
+            ->host()
+            ->toString();
+        $parts = \explode('.', $host);
+        $tld = \end($parts);
+        $child = $this->children[$tld] ??= ($this->spawn)(
+            ChildCrawler::class,
+            Str::of($tld),
+        )->match(
+            static fn($address) => $address,
+            static fn() => throw new \Exception,
+        );
+
+        $child(Sequence::of($url))->memoize();
     }
 }
 
@@ -198,7 +190,7 @@ final class ChildCrawler implements Actor
 {
     public function __construct(
         private OperatingSystem $os,
-        private Tld $tld,
+        private string $tld,
     ) {
     }
 
@@ -208,26 +200,8 @@ final class ChildCrawler implements Actor
             Url::class,
             function(Url $url, Address $sender, Continuation $continuation) {
                 \printf(
-                    "Actor %s trying to handle %s\n",
-                    $this->tld->name,
-                    $url->value(),
-                );
-
-                if (!$url->is($this->tld)) {
-                    \printf(
-                        "Actor %s sending back %s\n",
-                        $this->tld->name,
-                        $url->value(),
-                    );
-
-                    $sender(Sequence::of($url))->memoize();
-
-                    return $continuation->continue();
-                }
-
-                \printf(
                     "Actor %s crawling %s\n",
-                    $this->tld->name,
+                    $this->tld,
                     $url->value(),
                 );
 
@@ -244,13 +218,13 @@ System::of(
     Factory::build(),
     InMemory::new(),
 )
-    ->handle(Url::class, Tld::class)
+    ->handle(Url::class, Str::class)
     ->actor(
         Crawler::class,
         static fn($_, Url $url, Spawn $spawn) => new Crawler($spawn, $url),
     )
     ->actor(
         ChildCrawler::class,
-        static fn(OperatingSystem $os, Tld $tld) => new ChildCrawler($os, $tld),
+        static fn(OperatingSystem $os, Str $tld) => new ChildCrawler($os, $tld->message()),
     )
-    ->run(Crawler::class, Url::of('https://wikipedia.org'));
+    ->run(Crawler::class, Url::of('https://www.service-public.fr'));
