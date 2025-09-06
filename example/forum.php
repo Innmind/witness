@@ -112,10 +112,6 @@ function gather(Node $node): Sequence
 function crawl(OperatingSystem $os, Url $url): Sequence
 {
     $resolve = UrlResolver::of('http', 'https');
-    \printf(
-        "Crawling %s\n",
-        $url->value(),
-    );
     $http = FollowRedirections::of($os->remote()->http());
 
     $urls = $http(Request::of(
@@ -136,10 +132,6 @@ function crawl(OperatingSystem $os, Url $url): Sequence
             $dest,
         ))
         ->map(static fn($url) => Url::of($url->toString()));
-    \printf(
-        "Done %s\n",
-        $url->value(),
-    );
 
     return $urls;
 }
@@ -200,13 +192,19 @@ final class ChildCrawler implements Actor
             Url::class,
             function(Url $url, Address $sender, Continuation $continuation) {
                 \printf(
-                    "Actor %s crawling %s\n",
+                    "Actor %-5s crawling %s\n",
                     $this->tld,
                     $url->value(),
                 );
 
                 $urls = crawl($this->os, $url);
                 $sender($urls)->memoize();
+
+                \printf(
+                    "Actor %-5s done\n",
+                    $this->tld,
+                    $url->value(),
+                );
 
                 return $continuation->continue();
             },
