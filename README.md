@@ -6,4 +6,4 @@
 
 Framework to build applications using the Actor Model.
 
-See the [documentation](https://innmind.github.io/actors/philosophy.html#why) to see why PHP can be a good candidate for such applications.
+See the [documentation](https://innmind.org/actors/PHILOSOPHY.html#why-) to see why PHP can be a good candidate for such applications.
