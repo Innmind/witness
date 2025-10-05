@@ -1,9 +1,9 @@
 <?php
 declare(strict_types = 1);
 
-namespace Tests\Innmind\Witness\Actor\Mailbox;
+namespace Tests\Innmind\Actors\Actor\Mailbox;
 
-use Innmind\Witness\{
+use Innmind\Actors\{
     Actor\Mailbox\InMemory,
     Actor\Mailbox,
     Actor\Mailbox\Address,

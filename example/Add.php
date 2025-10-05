@@ -3,7 +3,7 @@ declare(strict_types = 1);
 
 namespace Example;
 
-use Innmind\Witness\Message;
+use Innmind\Actors\Message;
 use Innmind\Immutable\Maybe;
 
 final class Add implements Message

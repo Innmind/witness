@@ -15,7 +15,7 @@ use Innmind\CLI\{
     Environment,
 };
 use Innmind\OperatingSystem\OperatingSystem;
-use Innmind\Witness\Genesis;
+use Innmind\Actors\Genesis;
 
 new class extends Main
 {

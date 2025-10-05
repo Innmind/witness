@@ -1,9 +1,9 @@
 {
-    "name": "innmind/witness",
+    "name": "innmind/actors",
     "type": "library",
     "description": "",
     "keywords": [],
-    "homepage": "http://github.com/innmind/witness",
+    "homepage": "http://github.com/innmind/actors",
     "license": "MIT",
     "authors": [
         {
@@ -12,7 +12,7 @@
         }
     ],
     "support": {
-        "issues": "http://github.com/innmind/witness/issues"
+        "issues": "http://github.com/innmind/actors/issues"
     },
     "require": {
         "php": "~8.0",
@@ -20,12 +20,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Innmind\\Witness\\": "src/"
+            "Innmind\\Actors\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\Innmind\\Witness\\": "tests/",
+            "Tests\\Innmind\\Actors\\": "tests/",
             "Example\\": "example/"
         }
     },

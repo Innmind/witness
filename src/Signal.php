@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness;
+namespace Innmind\Actors;
 
 /**
  * Empty interface to simply reference all signal behind a same type to keep

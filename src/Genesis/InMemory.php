@@ -1,9 +1,9 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness\Genesis;
+namespace Innmind\Actors\Genesis;
 
-use Innmind\Witness\{
+use Innmind\Actors\{
     Genesis,
     Genesis\InMemory\Children,
     Actor\Mailbox,
