@@ -10,7 +10,7 @@ use Innmind\Url\Path;
 return static function(Config $config): Config
 {
     return $config
-        ->package('innmind', 'witness')
+        ->package('innmind', 'actors')
         ->locatedAt(Path::of('docs/'))
         ->menu(
             Entry::markdown(

@@ -1,9 +1,9 @@
 <?php
 declare(strict_types = 1);
 
-namespace Innmind\Witness;
+namespace Innmind\Actors;
 
-use Innmind\Witness\Actor\Mailbox\Address;
+use Innmind\Actors\Actor\Mailbox\Address;
 
 /**
  * @psalm-type Primitive = int|float|string|bool

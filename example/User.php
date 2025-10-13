@@ -3,7 +3,7 @@ declare(strict_types = 1);
 
 namespace Example;
 
-use Innmind\Witness\{
+use Innmind\Actors\{
     Genesis,
     Actor,
     Message,

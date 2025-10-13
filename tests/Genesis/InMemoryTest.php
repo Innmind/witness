@@ -1,9 +1,9 @@
 <?php
 declare(strict_types = 1);
 
-namespace Tests\Innmind\Witness\Genesis;
+namespace Tests\Innmind\Actors\Genesis;
 
-use Innmind\Witness\{
+use Innmind\Actors\{
     Genesis\InMemory,
     Genesis,
     Actor,
